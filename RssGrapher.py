@@ -10,7 +10,7 @@ def _is_structured(data):
 
 def execute(graphAddress):
 
-    Recorder.initialize(graphAddress)
+    recorder = Recorder().initialize(graphAddress)
 
     while True:
         sleep(60)
@@ -20,18 +20,15 @@ def execute(graphAddress):
             extracted = Feeder.extract(feed)
 
             if _is_structured(extracted):
-                topic, record_value = Parser.structured_topic(extracted)
+                topics, record_value = Parser.structured_topic(extracted)
             else:
-                topic, record_value = Parser.parse_topics(extracted)
+                topics, record_value = Parser.parse_topics(extracted)
 
-            if Recorder.hasNode(topic):
-                tnode = Recorder.add_topic(topic) #this method is where location fixes would go.
-            else:
-                tnode = Recorder.fetch_topic(topic)
+            topics_graph = recorder.get_or_add_topics(topics)
 
-            rnode = Recorder.add_record(record_value)
+            rnode = recorder.add_record(record_value)
 
-            Recorder.relate_then_push(tnode, rnode)
+            recorder.relate_then_push(topics_graph, rnode)
 
 if __name__ == "__main__":
     execute(sys.argv[1])
