@@ -20,18 +20,15 @@ def execute(graphAddress):
             extracted = Feeder.extract(feed)
 
             if _is_structured(extracted):
-                topic, record_value = Parser.structured_topic(extracted)
+                topics, record_value = Parser.structured_topic(extracted)
             else:
-                topic, record_value = Parser.parse_topics(extracted)
+                topics, record_value = Parser.parse_topics(extracted)
 
-            if recorder.hasNode(topic):
-                tnode = recorder.add_topic(topic) #this method is where location fixes would go.
-            else:
-                tnode = recorder.fetch_topic(topic)
+            topics_graph = recorder.get_or_add_topic(topics)
 
             rnode = recorder.add_record(record_value)
 
-            recorder.relate_then_push(tnode, rnode)
+            recorder.relate_then_push(topics_graph, rnode)
 
 if __name__ == "__main__":
     execute(sys.argv[1])
