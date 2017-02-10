@@ -1,18 +1,17 @@
 from py2neo import Graph
 from py2neo import Node
 from py2neo import Relationship
-from py2neo import Subgraph
-
 
 class Recorder:
     graph = None
+    confirm_mode = False
 
     def initialize(self, graph_address):
         self.graph = Graph(self, graph_address)
 
-    def _subgraphify(self, graphs):
-        base = graphs.pop(0)
-        for graph in graphs:
+    def _subgraphify(self, graph_list):
+        base = graph_list.pop(0)
+        for graph in graph_list:
             base = base | graph
         return base
 
@@ -20,7 +19,7 @@ class Recorder:
         listing = []
         for topic in topics:
             n = Node("Topic", name=topic)
-            self.graph.create(n)
+            if self.confirm_mode: self.graph.create(n)
             listing.append(n)
         return self._subgraphify(listing)
 
@@ -31,7 +30,7 @@ class Recorder:
             listing.append(match)
         return self._subgraphify(listing)
 
-    def get_or_add_topic(self, topics):
+    def get_or_add_topics(self, topics):
         listing = []
         for topic in topics:
             if self.has_topic([topic]):
@@ -42,7 +41,7 @@ class Recorder:
 
     def add_record(self, data):
         n = Node("Record", content=data)
-        self.graph.create(n)
+        if self.confirm_mode: self.graph.create(n)
         return n
 
     def has_topic(self, topics):
@@ -53,7 +52,12 @@ class Recorder:
 
     def relate_then_push(self, topic_subgraph, record_node):
         related = self.relate(topic_subgraph, record_node)
+        if self.confirm_mode:
+            print related
+        if self.confirm_mode and raw_input("Confirm with y: ") != "y": return -1
+
         self.push(related)
+        return 0
 
     def relate(self, topic_subgraph, record_node):
         listing = []
@@ -69,10 +73,10 @@ if __name__ == "__main__":
     rec = Recorder()
     rec.initialize('http://localhost:7474/db/data/')
 
-    print rec.get_or_add_topic(["Trump"])
-    print rec.get_or_add_topic(["Trump"])
+    print rec.get_or_add_topics(["Trump"])
+    print rec.get_or_add_topics(["Trump"])
 
-    tops = rec.get_or_add_topic(["Hilary", "Trump"])
+    tops = rec.get_or_add_topics(["Hilary", "Trump"])
     recs = Node("Record", content="cats")
 
     rec.relate_then_push(tops, recs)

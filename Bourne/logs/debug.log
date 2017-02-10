@@ -5672,3 +5672,30 @@ java.io.IOException: An existing connection was forcibly closed by the remote ho
 2017-02-10 22:30:04.034+0000 INFO  [o.n.k.i.t.l.c.CheckPointerImpl] Check Pointing triggered by scheduler for time threshold [79]:  Check pointing completed
 2017-02-10 22:30:04.037+0000 INFO  [o.n.k.i.t.l.p.LogPruningImpl] Log Rotation [0]:  Starting log pruning.
 2017-02-10 22:30:04.042+0000 INFO  [o.n.k.i.t.l.p.LogPruningImpl] Log Rotation [0]:  Log pruning complete.
+2017-02-10 22:37:26.673+0000 ERROR [o.n.b.t.SocketTransportHandler] Fatal error occurred when handling a client connection: An existing connection was forcibly closed by the remote host An existing connection was forcibly closed by the remote host
+java.io.IOException: An existing connection was forcibly closed by the remote host
+	at sun.nio.ch.SocketDispatcher.read0(Native Method)
+	at sun.nio.ch.SocketDispatcher.read(Unknown Source)
+	at sun.nio.ch.IOUtil.readIntoNativeBuffer(Unknown Source)
+	at sun.nio.ch.IOUtil.read(Unknown Source)
+	at sun.nio.ch.SocketChannelImpl.read(Unknown Source)
+	at io.netty.buffer.PooledUnsafeDirectByteBuf.setBytes(PooledUnsafeDirectByteBuf.java:288)
+	at io.netty.buffer.AbstractByteBuf.writeBytes(AbstractByteBuf.java:1100)
+	at io.netty.channel.socket.nio.NioSocketChannel.doReadBytes(NioSocketChannel.java:366)
+	at io.netty.channel.nio.AbstractNioByteChannel$NioByteUnsafe.read(AbstractNioByteChannel.java:118)
+	at io.netty.channel.nio.NioEventLoop.processSelectedKey(NioEventLoop.java:651)
+	at io.netty.channel.nio.NioEventLoop.processSelectedKeysOptimized(NioEventLoop.java:574)
+	at io.netty.channel.nio.NioEventLoop.processSelectedKeys(NioEventLoop.java:488)
+	at io.netty.channel.nio.NioEventLoop.run(NioEventLoop.java:450)
+	at io.netty.util.concurrent.SingleThreadEventExecutor$5.run(SingleThreadEventExecutor.java:873)
+	at java.lang.Thread.run(Unknown Source)
+2017-02-10 22:37:34.090+0000 INFO  [o.n.k.i.t.l.c.CheckPointerImpl] Check Pointing triggered by scheduler for time threshold [81]:  Starting check pointing...
+2017-02-10 22:37:34.093+0000 INFO  [o.n.k.i.t.l.c.CheckPointerImpl] Check Pointing triggered by scheduler for time threshold [81]:  Starting store flush...
+2017-02-10 22:37:34.173+0000 INFO  [o.n.k.i.s.c.CountsTracker] About to rotate counts store at transaction 81 to [C:\Users\localadmin\Documents\Code Repositories\GraphDb\Bourne\neostore.counts.db.a], from [C:\Users\localadmin\Documents\Code Repositories\GraphDb\Bourne\neostore.counts.db.b].
+2017-02-10 22:37:34.182+0000 INFO  [o.n.k.i.s.c.CountsTracker] Successfully rotated counts store at transaction 81 to [C:\Users\localadmin\Documents\Code Repositories\GraphDb\Bourne\neostore.counts.db.a], from [C:\Users\localadmin\Documents\Code Repositories\GraphDb\Bourne\neostore.counts.db.b].
+2017-02-10 22:37:34.221+0000 INFO  [o.n.k.i.t.l.c.CheckPointerImpl] Check Pointing triggered by scheduler for time threshold [81]:  Store flush completed
+2017-02-10 22:37:34.225+0000 INFO  [o.n.k.i.t.l.c.CheckPointerImpl] Check Pointing triggered by scheduler for time threshold [81]:  Starting appending check point entry into the tx log...
+2017-02-10 22:37:34.233+0000 INFO  [o.n.k.i.t.l.c.CheckPointerImpl] Check Pointing triggered by scheduler for time threshold [81]:  Appending check point entry into the tx log completed
+2017-02-10 22:37:34.238+0000 INFO  [o.n.k.i.t.l.c.CheckPointerImpl] Check Pointing triggered by scheduler for time threshold [81]:  Check pointing completed
+2017-02-10 22:37:34.242+0000 INFO  [o.n.k.i.t.l.p.LogPruningImpl] Log Rotation [0]:  Starting log pruning.
+2017-02-10 22:37:34.246+0000 INFO  [o.n.k.i.t.l.p.LogPruningImpl] Log Rotation [0]:  Log pruning complete.

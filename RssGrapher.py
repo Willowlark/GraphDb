@@ -24,7 +24,7 @@ def execute(graphAddress):
             else:
                 topics, record_value = Parser.parse_topics(extracted)
 
-            topics_graph = recorder.get_or_add_topic(topics)
+            topics_graph = recorder.get_or_add_topics(topics)
 
             rnode = recorder.add_record(record_value)
 
