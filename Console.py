@@ -1,8 +1,10 @@
 import cmd
 import re
-from Node_Generators.Importers import ImportFactory
 import sys
+
 import Graph_Access
+from Mark1.Node_Generators.Importers import ImportFactory
+
 
 class Console(cmd.Cmd):
 

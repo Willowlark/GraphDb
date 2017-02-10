@@ -1,6 +1,7 @@
 import csv
-from Node_Generators import Neo_Conversion
 from os.path import isfile
+
+from Mark1.Node_Generators import Neo_Conversion
 
 
 class Importer(object):
