@@ -175,10 +175,13 @@ class Recorder:
         flag is true.
 
         `subgraph`: The subgraph to update and create.
+
+        `return`: -1 on a failure, else None.
         """
-        if self.confirm_mode: print subgraph
-        if (self.confirm_mode and raw_input("Confirm with y: ") != "y") \
-                or not self.confirm_mode:
+        if self.confirm_mode:
+            print subgraph
+            if raw_input("Confirm with y: ") != "y":
+                return -1
             self.graph.push(subgraph)
             self.graph.create(subgraph)
 
