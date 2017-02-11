@@ -5,4 +5,10 @@ class Topic(object):
         self.text = text
 
     def __repr__(self):
+        return self.get_text()
+
+    def __eq__(self, other):
+        return self.get_text() == other.get_text()
+
+    def get_text(self):
         return self.text
