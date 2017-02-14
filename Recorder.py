@@ -43,7 +43,7 @@ class Recorder:
             base = base | graph
         return base
 
-    def add_topic(self, topics):
+    def add_topic(self, topic_candidates):
         """
         `Author`: Bill Clark
 
@@ -57,30 +57,30 @@ class Recorder:
         `return`: a subgraph containing all the new nodes.
         """
         listing = []
-        for topic in topics:
-            n = Node("Topic", name=topic)
+        for topic in topic_candidates:
+            n = Node("Topic", name=topic.title)
             if self.confirm_mode: self.graph.create(n)
             listing.append(n)
         return self._subgraphify(listing)
 
-    def fetch_topics(self, topics):
+    def fetch_topics(self, topic_candidates):
         """
         `Author`: Bill Clark
 
         Retrieves topics from the graph. Assumes the topics are in the graph, use has_topic
         beforehand. Takes the first found instance, but names should be singleton anyway.
 
-        `topics`: List of string topic names to retrieve.
+        `topic_candidates`: List of string topic names to retrieve.
 
         `return`: subgraph of the topics retrieved.
         """
         listing = []
-        for topic in topics:
-            match = self.graph.find_one("Topic", property_key='name', property_value=topic)
+        for topic in topic_candidates:
+            match = self.graph.find_one("Topic", property_key='name', property_value=topic.title)
             listing.append(match)
         return self._subgraphify(listing)
 
-    def get_or_add_topics(self, topics):
+    def get_or_add_topics(self, topic_candidates):
         """
         `Author`: Bill Clark
 
@@ -88,17 +88,17 @@ class Recorder:
         doesn't exist or retrieves it if it does not. This should be used over the
         individual add and fetch operations.
 
-        `topics`: List of topic strings to be added or retieved. The value of the string
+        `topic_candidates`: List of topic strings to be added or retieved. The value of the string
         is the name property of the node.
 
         `return`: a subgraph of the fetched and added nodes.
         """
         listing = []
-        for topic in topics:
-            if self.has_topic([topic]):
-                listing.append(self.fetch_topics([topic]))
+        for topic in topic_candidates:
+            if self.has_topic([topic.title]):
+                listing.append(self.fetch_topics([topic.title]))
             else:
-                listing.append(self.add_topic([topic]))
+                listing.append(self.add_topic([topic.title]))
         return self._subgraphify(listing)
 
     def add_record(self, data):
@@ -117,19 +117,19 @@ class Recorder:
         if self.confirm_mode: self.graph.create(n)
         return n
 
-    def has_topic(self, topics):
+    def has_topic(self, topic_candidates):
         """
         `Author`: Bill Clark
 
         Checks a list of topics for existence in the graph. One failure in the list
         fails the list. Can only be used with Topics.
 
-        `topics`: list of topics (string holding name value) to confirm existence of.
+        `topic_candidates`: list of topics (string holding name value) to confirm existence of.
 
         `return`: boolean, true iff all topics are contained.
         """
-        for topic in topics:
-            if not self.graph.find_one("Topic", property_key="name", property_value=topic):
+        for topic in topic_candidates:
+            if not self.graph.find_one("Topic", property_key="name", property_value=topic.title):
                 return False
         return True
 
