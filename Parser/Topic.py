@@ -8,7 +8,7 @@ class Topic(object):
         return self.get_text()
 
     def __eq__(self, other):
-        return self.get_text() == other.get_text()
+        return self.__str__() == other.__str__()
 
     def __str__(self):
         return self.text
