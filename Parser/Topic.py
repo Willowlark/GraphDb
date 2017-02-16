@@ -1,17 +1,13 @@
 
-class Topic(object):
-
-    def __init__(self, text):
-        self.text = text
+class Topic_Candidate(object):
 
     def __repr__(self):
-        return self.get_text()
-
-    def __eq__(self, other):
-        return self.__str__() == other.__str__()
+        return self.title
 
     def __str__(self):
-        return self.text
+        return self.title
 
-    def get_text(self):
-        return self.text
+    def __init__(self, title, strength, label):
+        self.title = title
+        self.strength = strength
+        self.label = label
