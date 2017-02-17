@@ -16,6 +16,7 @@ class Parser():
 
     @staticmethod
     def structured_topic(self):
+        # TODO fill in method when work is complete
         pass
 
     @staticmethod
@@ -56,12 +57,7 @@ class Parser():
 
     @staticmethod
     def is_structured(data):
-        """
-        TODO
-
-        :param data:
-        :return:
-        """
+        # TODO fill in when rss xml parsed
         return data is None
 
 def _get_continuous_chunks(tagged):
@@ -75,20 +71,16 @@ def _get_continuous_chunks(tagged):
     """
     labels = defaultdict(set) # the dictionary of labels whose values are associated sets of topics
     counts =  defaultdict(int)  # the dictionary of topics whose value is the count of appearances in the entire body of text
-    for sentence in tagged:
-        # used default named entity chunk grammar, TODO research grammar as replacement
-        chunked = nltk.ne_chunk(sentence, binary=False)
+    for chunked in nltk.ne_chunk_sents(tagged, binary=False):
         continuous_chunk, current_chunk = [], []
         for i in chunked:
             if type(i) == nltk.Tree:
                 token = " ".join([token for token, pos in i.leaves()]) # the key word to be used as the likely topic
                 label = str(i).split(' ')[0][1:] # get the key that is the label of the named entity
                 labels[label].add(token)
+                counts[token] += 1
                 current_chunk.append(token)
             elif current_chunk:
-                named_entity = " ".join(current_chunk)
-                counts[named_entity] += 1
-                continuous_chunk.append(named_entity)
                 current_chunk = []
             else:
                 continue
@@ -116,7 +108,6 @@ def _process_input(input):
 
     def get_text(file):
         import re
-
         """Read text from a file, normalizing whitespace and stripping HTML markup."""
         text = open(file).read()
         text = re.sub(r'<.*?>', ' ', text)
@@ -147,20 +138,10 @@ def info_extract_preprocess(document):
    tagged = [nltk.pos_tag(sent) for sent in tokenized] # tag the sentences in tokenized
    return tagged
 
-def lemmatize_words(*set):
-    from nltk.stem import WordNetLemmatizer
-    wordnet_lemmatizer = WordNetLemmatizer()
-    return [wordnet_lemmatizer.lemmatize(word) for word in set]
-
 def debug():
     """
-    General flow
-        i.      process input as file, url or raw text into body
-        ii.     get tokens of body into tokens
-        iii.    get part of speech tags into tagged
-        iv.     developed strongest accuracy for classifier of tags
-        iv.     generate the top strongest words for topics
-        /v.      yield the top hits of proper conjunctive nouns
+    Used only for investigation of lemmatization.
+    Remnants kept in case it can be found useful
     """
     body = _process_input('http://www.foxnews.com/politics/2017/02/08/white-house-fires-back-at-immigration-order-critics-with-list-terror-arrests.html')
     tokenized = nltk.word_tokenize(body)
@@ -181,13 +162,13 @@ def main():
 
     gen = Parser.parse_topics(body)
     for topic in gen:
-        print topic, ', ',
+        pprint(vars(topic))
     print
 
-    gen = Parser.parse_topics_not_nouns(5, ('JJ', 'VB'), body)
+    gen = Parser.parse_topics_not_nouns(3, ('JJ', 'VB'), body)
     for topic in gen:
         try:
-            print topic, ', ',
+            pprint(vars(topic))
         except UnicodeEncodeError as e:
             pass
     print
