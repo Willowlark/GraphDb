@@ -1,8 +1,12 @@
 
 from __future__ import division
-import nltk, sys, validators, os
+import nltk, sys, validators, os, operator
 from pprint import pprint
 from collections import defaultdict
+from nltk.chunk import *
+from nltk.chunk.util import *
+from nltk.chunk.regexp import *
+from nltk import Tree
 # from Topic_Candidate import Topic_Candidate
 from Topic import Topic_Candidate
 
@@ -86,6 +90,33 @@ def _get_continuous_chunks(tagged):
                 continue
     return labels, counts
 
+def grammar_investigate(tagged):
+    labels = defaultdict(set) # the dictionary of labels whose values are associated sets of topics
+    counts =  defaultdict(int)  # the dictionary of topics whose value is the count of appearances in the entire body of text
+
+    grammar = r"""
+      NP: {<DT|JJ|NN.*>+}          # Chunk sequences of DT, JJ, NN
+      PP: {<IN><NP>}               # Chunk prepositions followed by NP
+      VP: {<VB.*><NP|PP|CLAUSE>+$} # Chunk verbs and their arguments
+      CLAUSE: {<NP><VP>}           # Chunk NP, PP, VP
+      """
+    cp = nltk.RegexpParser(grammar)
+
+    # chunk_rule = ChunkRule("<.*>+", "Chunk everything")
+    # chink_rule = ChinkRule("<VB\.>", "Chink on verbs/prepositions")
+    # split_rule = SplitRule("<NN><VB>", "<DT><NN>",
+    # "Split successive determiner/noun pairs")
+    # chunk_parser = RegexpChunkParser([chunk_rule, chink_rule, split_rule], chunk_label = 'VB')
+    # print(chunk_parser)
+
+    for sentence in tagged:
+        # chunked = chunk_parser.parse(sentence)
+        chunked = cp.parse(sentence)
+        for i in chunked:
+            if type(i) != nltk.Tree and (i[1].startswith('V') or i[1].startswith('J')):
+                counts[i[0]] += 1
+    return labels, counts
+
 def _process_input(input):
 
     def process_string(string):
@@ -139,6 +170,14 @@ def info_extract_preprocess(document):
    return tagged
 
 def debug():
+    print "DEbUG"
+    body = _process_input(
+        'http://www.foxnews.com/us/2017/02/10/marine-vet-speaks-out-about-viral-video-supporting-trump-travel-ban.html')
+    processed = info_extract_preprocess(body)  # preprocessed body for tagged words in sentence form
+    labels, counts = grammar_investigate(processed)
+    print sorted(counts.iteritems(), key=operator.itemgetter(1), reverse=True)
+
+def lemmatize_investigate():
     """
     Used only for investigation of lemmatization.
     Remnants kept in case it can be found useful
@@ -174,7 +213,7 @@ def main():
     print
 
 if __name__ == '__main__':
-    d_bug = 0
+    d_bug = 1
     if d_bug:
         debug()
     else:
