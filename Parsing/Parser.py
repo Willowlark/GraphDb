@@ -147,7 +147,7 @@ def info_extract_preprocess(document):
    tagged = [nltk.pos_tag(sent) for sent in tokenized] # tag the sentences in tokenized
    return tagged
 
-def lemmatize_words(set):
+def lemmatize_words(*set):
     from nltk.stem import WordNetLemmatizer
     wordnet_lemmatizer = WordNetLemmatizer()
     return [wordnet_lemmatizer.lemmatize(word) for word in set]
@@ -165,11 +165,14 @@ def debug():
     body = _process_input('http://www.foxnews.com/politics/2017/02/08/white-house-fires-back-at-immigration-order-critics-with-list-terror-arrests.html')
     tokenized = nltk.word_tokenize(body)
     tagged = nltk.pos_tag(tokenized)
-    gen = generate_frequency_by_pos(tagged=tagged, pos=('JJ'))
-    dict = {}
+    gen = generate_frequency_by_pos(tagged=tagged, pos=('JJ', 'VB'))
+    from nltk.stem import WordNetLemmatizer
+    wordnet_lemmatizer = WordNetLemmatizer()
     for elem in gen:
-        dict[elem[0]] = elem[1]
-    pprint(dict)
+        print elem[0],
+        for title, strength in elem[1]:
+            print title, wordnet_lemmatizer.lemmatize(title), ',',
+        print
 
 def main():
     # demo usage in context
