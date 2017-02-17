@@ -2,9 +2,9 @@
 from __future__ import division
 import nltk, sys, validators, os
 from pprint import pprint
+from collections import defaultdict
 # from Topic_Candidate import Topic_Candidate
 from Topic import Topic_Candidate
-from collections import defaultdict
 
 class Parser():
     """
@@ -178,13 +178,13 @@ def main():
 
     gen = Parser.parse_topics(body)
     for topic in gen:
-        print topic,
+        print topic, ', ',
     print
 
     gen = Parser.parse_topics_not_nouns(5, ('JJ', 'VB'), body)
     for topic in gen:
         try:
-            print topic,
+            print topic, ', ',
         except UnicodeEncodeError as e:
             pass
     print
