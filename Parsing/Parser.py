@@ -4,7 +4,6 @@ import nltk, sys, validators, os
 from pprint import pprint
 from collections import defaultdict
 from Topic_Candidate import Topic_Candidate
-# from Topic import Topic_Candidate
 
 """
 This file stores the static methods to interpret topic candidates from zero or more bodies of text.
