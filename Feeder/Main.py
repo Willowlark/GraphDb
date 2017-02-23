@@ -8,7 +8,7 @@ from Feeder import Feeder
 
 def main():
 
-    feeder = Feeder('http://popculturebrain.com/rss')
+    feeder = Feeder('links.txt')
     feeds = feeder.load_feeds()
 
     for i in range(len(feeds)):
