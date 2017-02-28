@@ -1,6 +1,7 @@
 
 from __future__ import division
 import nltk, sys, validators, os
+import json
 from pprint import pprint
 from collections import defaultdict
 from Topic_Candidate import Topic_Candidate
@@ -50,9 +51,19 @@ def parse_topics_not_nouns(*kargs):
                 yield Topic_Candidate(title, strength, label)
 
 def is_structured(data):
-    # TODO fill in when rss xml parsed
-    return data is None
+    """
+    This method determines if the given python string, data, is structured data or not.
+    Structured data is information in the format the development team has agreed on using as the format to be used when we not examining raw, unfiltered text.
+    This format is JSON.
 
+    `data` the literal string that is passed to be checked
+    `return` True if the string can be leaded in JSON format, else False
+    """
+    try:
+        json.loads(data)
+    except ValueError as e:
+        return False
+    return True
 
 def info_extract_preprocess(document):
     """
