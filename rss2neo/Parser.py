@@ -31,13 +31,25 @@ class Topic_Candidate(object):
 """
 This file stores the static methods to interpret topic candidates from zero or more bodies of text.
 The work that accomplishes this is in the method parse_topics
-Structured_topic returns a structured topic instance.
+Structured_topic returns the structured topic instances form the body of the text in the rss feed summary.
 is_structured returns a true if input data is structured, else false.
 """
 
 def structured_topic(*kargs):
-    # TODO fill in method when work is complete
-    pass
+    """
+    This method will render the list of structured topics form the predisposed format of data, a JSON string.
+
+    `kargs` the list of zero or more literal strings to be parsed from the rss feed
+    `return` ret, the list of structured topics from the body of text
+    """
+    ret = []
+    mkup = markup_parser.markup_parser()
+    for arg in kargs:
+        if is_structured(arg):
+            ret.append(json.loads(arg))
+        else:
+            ret.append(mkup.to_json(arg))
+    return ret
 
 def parse_topics(*kargs):
     """
@@ -77,9 +89,19 @@ def parse_topics_not_nouns(*kargs):
                 yield Topic_Candidate(title, strength, label)
 
 def is_structured(data):
-    # TODO fill in when rss xml parsed
-    return data is None
+    """
+    This method determines if the given python string, data, is structured data or not.
+    Structured data is information in the format the development team has agreed on using as the format to be used when we not examining raw, unfiltered text.
+    This format is JSON.
 
+    `data` the literal string that is passed to be checked
+    `return` True if the string can be leaded in JSON format, else False
+    """
+    try:
+        json.loads(data)
+    except ValueError as e:
+        return False
+    return True
 
 def info_extract_preprocess(document):
     """
@@ -191,7 +213,7 @@ def _process_input(input):
     def get_text(file):
         import re
         """Read text from a file, normalizing whitespace and stripping HTML markup."""
-        text = open(file).read().decode()
+        text = open(file).read()
         text = re.sub(r'<.*?>', ' ', text)
         text = re.sub('\s+', ' ', text)
         return text
@@ -209,7 +231,6 @@ def main():
     body =_process_input(
         'http://www.foxnews.com/us/2017/02/10/marine-vet-speaks-out-about-viral-video-supporting-trump-travel-ban.html')
 
-    body = body.encode('ascii')
     # Use in practical development of NP parser (parser of choice)
     gen = parse_topics(body)
     gen = sorted(gen, key=lambda x: x.strength)
