@@ -1,6 +1,7 @@
 from __future__ import division
 
 import os
+import unicodedata
 import sys
 from collections import defaultdict
 import validators
@@ -29,6 +30,7 @@ def parse_topics(*kargs):
     """
     listing = []
     for body_of_text in kargs:
+        body_of_text = unicodedata.normalize('NFKD', body_of_text).encode('ascii', 'ignore')
         processed = info_extract_preprocess(body_of_text)   # preprocessed body for tagged words in sentence form
         labels, counts = _get_continuous_chunks_NP(processed)
         for label in labels.keys():
@@ -158,8 +160,6 @@ def _process_input(input):
         text = BeautifulSoup(html, "lxml")
         text = text.find("div", {"class" : "article-text"})
         text = text.get_text()
-
-        import unicodedata
 
         return unicodedata.normalize('NFKD', text).encode('ascii', 'ignore')
 
