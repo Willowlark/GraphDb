@@ -7,7 +7,26 @@ from collections import defaultdict
 import validators
 import nltk
 
-from Topic_Candidates import Topic_Candidate
+class Topic_Candidate(object):
+    """
+    `Author`: Bill Clark
+
+    A class created by the Parser to represent a Topic object in the graph, in relation
+    to the given record. The metadata then, is strictly tied to the record used when
+    creating the candidate.
+    """
+
+    def __repr__(self):
+        return self.topic
+
+    def __str__(self):
+        return self.topic
+
+    def __init__(self, topic, strength, label):
+        self.title = topic
+        self.strength = strength
+        self.label = label
+
 
 """
 This file stores the static methods to interpret topic candidates from zero or more bodies of text.

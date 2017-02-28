@@ -1,13 +1,26 @@
+import feedparser
+import validators
+import sys
+
+# * Created by Eliakah kakou
+# Feed.py
+# This class allows for more functionality in regards
+# to the dictionary entered in the constructor
+
+
+class Feed:
+    # constructor
+    def __init__(self, feed):
+        self.feed = feed
+
+    # This method returns a subset of the dictionary
+    def extract(self):
+        return {k: self.feed[k] for k in ('id', 'title', 'link', 'summary')}
+
 # * Created by Eliakah kakou
 # Feeder.py
 # This class gets an RSS feed and manipulates
 # the data based on the url entered
-
-
-from Feed import Feed
-import feedparser
-import validators
-import sys
 
 
 class Feeder:
@@ -16,10 +29,9 @@ class Feeder:
     def __init__(self, file):
         self.feeds = []
         self.links = []
-        #self.getLinks(file)
-        #for i in range(len(self.links)):
-        #    self.feeds.extend(self.getFeeds(self.links[i]))
-        self.feeds.extend(self.getFeeds('http://popculturebrain.com/rss'))
+        self.getLinks(file)
+        for i in range(len(self.links)):
+            self.feeds.extend(self.getFeeds(self.links[i]))
 
 
     def getLinks(self, file):

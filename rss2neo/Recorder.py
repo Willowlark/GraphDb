@@ -1,7 +1,7 @@
 from py2neo import Graph
 from py2neo import Node
 from py2neo import Relationship
-from Topic_Candidates import Topic_Candidate
+
 
 class Recorder:
     """

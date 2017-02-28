@@ -6,14 +6,14 @@ import Parser
 import Recorder
 
 
-def execute(graphAddress):
+def execute(graphAddress, path):
 
     recorder = Recorder().initialize(graphAddress)
 
     while True:
         sleep(60)
 
-        feeds = Feeder.load_feeds(file)
+        feeds = Feeder.load_feeds(path)
         for feed in feeds:
             extracted = Feeder.extract(feed)
 
