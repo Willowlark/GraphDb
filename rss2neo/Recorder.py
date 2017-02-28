@@ -2,6 +2,7 @@ from py2neo import Graph
 from py2neo import Node
 from py2neo import Relationship
 
+
 class Recorder:
     """
     `Author`: Bill Clark
@@ -95,10 +96,10 @@ class Recorder:
         """
         listing = []
         for topic in topic_candidates:
-            if self.has_topic([topic.title]):
-                listing.append(self.fetch_topics([topic.title]))
+            if self.has_topic([topic]):
+                listing.append(self.fetch_topics([topic]))
             else:
-                listing.append(self.add_topic([topic.title]))
+                listing.append(self.add_topic([topic]))
         return self._subgraphify(listing)
 
     def add_record(self, data):
@@ -182,17 +183,25 @@ class Recorder:
             print subgraph
             if raw_input("Confirm with y: ") != "y":
                 return -1
-            self.graph.push(subgraph)
-            self.graph.create(subgraph)
+        self.graph.push(subgraph)
+        self.graph.create(subgraph)
 
 if __name__ == "__main__":
     rec = Recorder()
     rec.initialize('http://localhost:7474/db/data/')
 
-    print rec.get_or_add_topics(["Trump"])
-    print rec.get_or_add_topics(["Trump"])
+    import Parser
+    import Feeder
 
-    tops = rec.get_or_add_topics(["Hilary", "Trump"])
+    feeder = Feeder.Feeder('links.txt')
+    feeds = feeder.load_feeds()
+
+    for i in range(len(feeds)):
+            print  feeds[i].extract()
+
+    ctopics = Parser.parse_topics(feeds[0].extract())
+    tops = rec.get_or_add_topics(ctopics)
+    print tops
     recs = Node("Record", content="cats")
 
     rec.relate_then_push(tops, recs)

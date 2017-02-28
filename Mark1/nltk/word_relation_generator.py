@@ -1,5 +1,7 @@
-from nltk.corpus import wordnet as wn
 from pprint import pprint
+
+from Mark1.nltk import wordnet as wn
+
 
 class word_relation_generator():
     
