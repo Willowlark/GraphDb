@@ -1,49 +1,25 @@
-import feedparser
-import json
 from HTMLParser import HTMLParser
 from pprint import pprint
-from lxml import etree
-
-def write_to_file():
-    python_wiki_rss_url = "http://www.python.org/cgi-bin/moinmoin/RecentChanges?action=rss_rc"
-    feed = feedparser.parse( python_wiki_rss_url)
-    html = feed['feed']['summary']
-    content = html.encode('latin1')
-
-    content = "<html><body>\n" + content + "\n</body></html>"
-    # print content
-    with open("outfile.html", "w") as file:
-        file.write(content)
-
-def is_json(myjson):
-  try:
-    json.loads(myjson)
-  except ValueError as e:
-    return False
-  return True
 
 """
+File for testing extraction of JSON from html format
+potential to be default case for structured data parsing
+
 source:
 http://www.xavierdupre.fr/blog/2013-10-27_nojs.html
 """
-class MyHTMLParser(HTMLParser):
-    def __init__(self, raise_exception=True) :
+class markup_parser(HTMLParser):
+    def __init__(self, raise_exception=False) :
         HTMLParser.__init__(self)
-        self.doc  = { }
+        self.json  = { }
         self.path = []
-        self.cur  = self.doc
+        self.cur  = self.json
         self.line = 0
         self.raise_exception = raise_exception
 
-    @property
-    def json(self):
-        return self.doc
-
-    @staticmethod
-    def to_json(content, raise_exception = False):
-        parser = MyHTMLParser(raise_exception = raise_exception)
-        parser.feed(content)
-        return parser.json
+    def to_json(self, content):
+        self.feed(content)
+        return self.json
 
     def handle_starttag(self, tag, attrs):
         self.path.append(tag)
@@ -91,17 +67,12 @@ class MyHTMLParser(HTMLParser):
                         del values[k]
         del values["__parent__"]
 
-def main():
+if __name__ == '__main__':
+    """
+    debugging demo
+    """
     with open("outfile.html") as file:
         content = file.read()
-        js = MyHTMLParser.to_json(content)
+        mkup = markup_parser()
+        js = mkup.to_json(content)
         pprint(js)
-
-def debug():
-
-    text = '{"foo":101, "bar":-0.1}'
-    print is_json(text)
-
-if __name__ == '__main__':
-
-    main()

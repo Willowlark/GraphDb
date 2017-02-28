@@ -5,17 +5,30 @@ import json
 from pprint import pprint
 from collections import defaultdict
 from Topic_Candidate import Topic_Candidate
+from Feeder import markup_parser
 
 """
 This file stores the static methods to interpret topic candidates from zero or more bodies of text.
 The work that accomplishes this is in the method parse_topics
-Structured_topic returns a structured topic instance.
+Structured_topic returns the structured topic instances form the body of the text in the rss feed summary.
 is_structured returns a true if input data is structured, else false.
 """
 
 def structured_topic(*kargs):
-    # TODO fill in method when work is complete
-    pass
+    """
+    This method will render the list of structured topics form the predisposed format of data, a JSON string.
+
+    `kargs` the list of zero or more literal strings to be parsed from the rss feed
+    `return` ret, the list of structured topics from the body of text
+    """
+    ret = []
+    mkup = markup_parser.markup_parser()
+    for arg in kargs:
+        if is_structured(arg):
+            ret.append(json.loads(arg))
+        else:
+            ret.append(mkup.to_json(arg))
+    return ret
 
 def parse_topics(*kargs):
     """
