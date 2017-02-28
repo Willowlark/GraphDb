@@ -1,12 +1,10 @@
+import sys
 from time import sleep
+
 import Feeder
 import Parser
 import Recorder
-from py2neo import Graph
-import sys
 
-def _is_structured(data):
-    pass
 
 def execute(graphAddress):
 
@@ -19,7 +17,7 @@ def execute(graphAddress):
         for feed in feeds:
             extracted = Feeder.extract(feed)
 
-            if _is_structured(extracted):
+            if Parser.is_structured(extracted):
                 topics, record_value = Parser.structured_topic(extracted)
             else:
                 topics, record_value = Parser.parse_topics(extracted)

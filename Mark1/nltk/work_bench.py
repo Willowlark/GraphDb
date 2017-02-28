@@ -1,6 +1,3 @@
-from nltk.corpus import wordnet as wn
-from pprint import pprint
-
 def path_similarity(source, destination):
     """
     synset1.path_similarity(synset2): Return a score denoting how similar two word senses are, based on the shortest path that connects the senses in the is-a (hypernym/hypnoym) taxonomy.

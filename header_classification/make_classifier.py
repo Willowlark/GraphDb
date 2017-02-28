@@ -1,6 +1,10 @@
-import random, nltk, pickle, os
-from feature_extraction import extract_features
+import os
+import pickle
+import random
+
+from Mark1 import nltk
 from csv_read import exe_read
+from feature_extraction import extract_features
 
 pickled_classifier_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'resources', 'pickled_classifier')
 local_file_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'csv', 'input.csv')

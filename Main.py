@@ -1,9 +1,8 @@
 # * Created by Eliakah kakou
 # Main.py
 # This class allows you call and test all classes
-import sys
 
-from Feeder import Feeder
+import Feeder
 
 
 def main():

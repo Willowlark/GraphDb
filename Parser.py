@@ -1,9 +1,12 @@
-
 from __future__ import division
-import nltk, sys, validators, os
-from pprint import pprint
+
+import os
+import sys
 from collections import defaultdict
-from Topic_Candidate import Topic_Candidate
+import validators
+import nltk
+
+from Topic_Candidates import Topic_Candidate
 
 """
 This file stores the static methods to interpret topic candidates from zero or more bodies of text.
@@ -24,13 +27,15 @@ def parse_topics(*kargs):
     `kargs` - the params (in the form zero or more) of raw bodies of text to be processed
     `yield` topic candidates - the generated collection of Noun based topics that have been extracted and constructed
     """
+    listing = []
     for body_of_text in kargs:
         processed = info_extract_preprocess(body_of_text)   # preprocessed body for tagged words in sentence form
         labels, counts = _get_continuous_chunks_NP(processed)
         for label in labels.keys():
             for title in labels[label]:
                 strength = counts[title]
-                yield Topic_Candidate(title, strength, label)
+                listing.append(Topic_Candidate(title, strength, label))
+    return listing
 
 def parse_topics_not_nouns(*kargs):
     """
@@ -153,7 +158,10 @@ def _process_input(input):
         text = BeautifulSoup(html, "lxml")
         text = text.find("div", {"class" : "article-text"})
         text = text.get_text()
-        return text
+
+        import unicodedata
+
+        return unicodedata.normalize('NFKD', text).encode('ascii', 'ignore')
 
     def process_file(file):
         text = get_text(file)
@@ -163,7 +171,7 @@ def _process_input(input):
     def get_text(file):
         import re
         """Read text from a file, normalizing whitespace and stripping HTML markup."""
-        text = open(file).read()
+        text = open(file).read().decode()
         text = re.sub(r'<.*?>', ' ', text)
         text = re.sub('\s+', ' ', text)
         return text
@@ -181,17 +189,11 @@ def main():
     body =_process_input(
         'http://www.foxnews.com/us/2017/02/10/marine-vet-speaks-out-about-viral-video-supporting-trump-travel-ban.html')
 
+    body = body.encode('ascii')
     # Use in practical development of NP parser (parser of choice)
     gen = parse_topics(body)
-    for topic in gen:
-        pprint(vars(topic))
-    print
-
-    # Use in practical dev of non NP parser.
-    gen = parse_topics_not_nouns(body)
-    for topic in gen:
-        pprint(vars(topic))
-    print
+    gen = sorted(gen, key=lambda x: x.strength)
+    return gen
 
 if __name__ == '__main__':
     main()
