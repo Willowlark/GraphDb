@@ -30,7 +30,8 @@ def parse_topics(*kargs):
     """
     listing = []
     for body_of_text in kargs:
-        body_of_text = unicodedata.normalize('NFKD', body_of_text).encode('ascii', 'ignore')
+        if isinstance(body_of_text, unicode):
+            body_of_text = unicodedata.normalize('NFKD', body_of_text).encode('ascii', 'ignore')
         processed = info_extract_preprocess(body_of_text)   # preprocessed body for tagged words in sentence form
         labels, counts = _get_continuous_chunks_NP(processed)
         for label in labels.keys():

@@ -2,7 +2,6 @@ from py2neo import Graph
 from py2neo import Node
 from py2neo import Relationship
 from Topic_Candidates import Topic_Candidate
-import Parser
 
 class Recorder:
     """
@@ -191,8 +190,16 @@ if __name__ == "__main__":
     rec = Recorder()
     rec.initialize('http://localhost:7474/db/data/')
 
-    ctopics = Parser.main()
+    import Parser
+    import Feeder
 
+    feeder = Feeder.Feeder('links.txt')
+    feeds = feeder.load_feeds()
+
+    for i in range(len(feeds)):
+            print  feeds[i].extract()
+
+    ctopics = Parser.parse_topics(feeds[0].extract())
     tops = rec.get_or_add_topics(ctopics)
     print tops
     recs = Node("Record", content="cats")

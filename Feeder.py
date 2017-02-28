@@ -16,9 +16,10 @@ class Feeder:
     def __init__(self, file):
         self.feeds = []
         self.links = []
-        self.getLinks(file)
-        for i in range(len(self.links)):
-            self.feeds.extend(self.getFeeds(self.links[i]))
+        #self.getLinks(file)
+        #for i in range(len(self.links)):
+        #    self.feeds.extend(self.getFeeds(self.links[i]))
+        self.feeds.extend(self.getFeeds('http://popculturebrain.com/rss'))
 
 
     def getLinks(self, file):
@@ -50,5 +51,9 @@ class Feeder:
 
         return feeds
 
+if __name__ == "__main__":
+    feeder = Feeder('links.txt')
+    feeds = feeder.load_feeds()
 
-
+    for i in range(len(feeds)):
+            print  feeds[i].extract()
