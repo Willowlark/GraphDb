@@ -199,7 +199,7 @@ if __name__ == "__main__":
     for i in range(len(feeds)):
             print  feeds[i].extract()
 
-    ctopics = Parser.parse_topics(feeds[0].extract())
+    ctopics = Parser.get_unstructured_topic(feeds[0].extract())
     tops = rec.get_or_add_topics(ctopics)
     print tops
     recs = Node("Record", content="cats")
