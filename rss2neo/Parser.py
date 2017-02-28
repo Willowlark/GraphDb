@@ -6,6 +6,8 @@ import sys
 from collections import defaultdict
 import validators
 import nltk
+import json
+from markup_parser import markup_parser
 
 class Topic_Candidate(object):
     """
@@ -17,10 +19,10 @@ class Topic_Candidate(object):
     """
 
     def __repr__(self):
-        return self.topic
+        return self.title
 
     def __str__(self):
-        return self.topic
+        return self.__repr__()
 
     def __init__(self, topic, strength, label):
         self.title = topic
@@ -35,23 +37,43 @@ Structured_topic returns the structured topic instances form the body of the tex
 is_structured returns a true if input data is structured, else false.
 """
 
-def structured_topic(*kargs):
+def get_structured_topic(extracted):
+    """
+    used by external modules to gather the structured topics of the summary of the feed json
+
+    `extracted` the json object of the feed being examined
+    `return` the result of the structured topic investigation.
+    """
+    body_of_text = extracted['summary']
+    return _structured_topic(body_of_text)
+
+def get_unstructured_topic(extracted, keys=('id', 'title', 'summary')):
+    """
+    used by external modules to gather the unstructured topics of the summary of the feed json
+
+
+    `extracted` the json object of the feed being examined
+    `keys` the optional list of args that are the keys of the associative dictionary extracted to have topics extracted
+    `return` the set of the unique topic candidate instances to be inserted by RssGrapher 
+    """
+    ret = set()
+    for key in keys:
+        ret.update(_parse_topics(extracted[key]))
+    return ret
+
+def _structured_topic(body_of_text, try_markup=False):
     """
     This method will render the list of structured topics form the predisposed format of data, a JSON string.
 
     `kargs` the list of zero or more literal strings to be parsed from the rss feed
     `return` ret, the list of structured topics from the body of text
     """
-    ret = []
-    mkup = markup_parser.markup_parser()
-    for arg in kargs:
-        if is_structured(arg):
-            ret.append(json.loads(arg))
-        else:
-            ret.append(mkup.to_json(arg))
-    return ret
+    if try_markup and not is_structured(body_of_text):
+        mkup = markup_parser()
+        return mkup.to_json(body_of_text)
+    return json.loads(body_of_text)
 
-def parse_topics(*kargs):
+def _parse_topics(body_of_text):
     """
     Used for parsing topic candidates, form conjunctive crucial words, that are of the Noun persuasion.
     The instances of topic candidate that are returned will be used in the database as units for relation creation
@@ -60,18 +82,17 @@ def parse_topics(*kargs):
     `yield` topic candidates - the generated collection of Noun based topics that have been extracted and constructed
     """
     listing = []
-    for body_of_text in kargs:
-        if isinstance(body_of_text, unicode):
-            body_of_text = unicodedata.normalize('NFKD', body_of_text).encode('ascii', 'ignore')
-        processed = info_extract_preprocess(body_of_text)   # preprocessed body for tagged words in sentence form
-        labels, counts = _get_continuous_chunks_NP(processed)
-        for label in labels.keys():
-            for title in labels[label]:
-                strength = counts[title]
-                listing.append(Topic_Candidate(title, strength, label))
+    if isinstance(body_of_text, unicode):
+        body_of_text = unicodedata.normalize('NFKD', body_of_text).encode('ascii', 'ignore')
+    processed = _info_extract_preprocess(body_of_text)   # preprocessed body for tagged words in sentence form
+    labels, counts = _get_continuous_chunks_NP(processed)
+    for label in labels.keys():
+        for title in labels[label]:
+            strength = counts[title]
+            listing.append(Topic_Candidate(title, strength, label))
     return listing
 
-def parse_topics_not_nouns(*kargs):
+def _parse_topics_not_nouns(*kargs):
     """
     Method used for parsing topics that are not conjunctive noun words.
     Second to the NP form that is preferred use. Does not produce effective NNPs.
@@ -81,7 +102,7 @@ def parse_topics_not_nouns(*kargs):
     `yield` topic candidates - the generated collection of non-Noun topics that have been extracted and constructed
     """
     for body_of_text in kargs:
-        processed = info_extract_preprocess(body_of_text)   # preprocessed body for tagged words in sentence form
+        processed = _info_extract_preprocess(body_of_text)   # preprocessed body for tagged words in sentence form
         labels, counts = _get_non_NP_chunks(processed)
         for label in labels.keys():
             for title in labels[label]:
@@ -99,11 +120,11 @@ def is_structured(data):
     """
     try:
         json.loads(data)
-    except ValueError as e:
+    except ValueError:
         return False
     return True
 
-def info_extract_preprocess(document):
+def _info_extract_preprocess(document):
     """
     This method is used to perform the reiterative process of preparing the given body of text to be parsed.
     First the sentences are tokenized using the default method of sent_tokenize(), next, the words are tokenized one by one.
@@ -232,12 +253,12 @@ def main():
         'http://www.foxnews.com/us/2017/02/10/marine-vet-speaks-out-about-viral-video-supporting-trump-travel-ban.html')
 
     # Use in practical development of NP parser (parser of choice)
-    gen = parse_topics(body)
+    gen = _parse_topics(body)
     gen = sorted(gen, key=lambda x: x.strength)
     return gen
 
 if __name__ == '__main__':
-    main()
+    print main()
     sys.exit(0)
 
 
