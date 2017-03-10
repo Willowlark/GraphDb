@@ -3,40 +3,37 @@ from time import sleep
 
 import Feeder
 import Parser
-import Recorder
+from Recorder import Recorder
 
 
 def execute(graphAddress, path):
 
-    recorder = Recorder().initialize(graphAddress)
+    recorder = Recorder()
+    recorder.initialize(graphAddress)
+    feeder = Feeder.Feeder(path)
 
     while True:
-        sleep(60)
 
-        feeds = Feeder.load_feeds(path)
+        feeds = feeder.load_feeds()
         for feed in feeds:
-            extracted = Feeder.extract(feed)
+            extracted = feed.extract()
 
             if Parser.is_structured(extracted):
-                topics, record_value = Parser.structured_topic(extracted)
+                topics, record_value = Parser.get_structured_topic(extracted)
             else:
-                topics, record_value = Parser.parse_topics(extracted)
+                topics, record_value = Parser.get_unstructured_topic(extracted)
 
             topics_graph = recorder.get_or_add_topics(topics)
 
-            rnode = recorder.add_record(record_value)
+            rnode = recorder.add_record(record_value) #confirm doesn't exist
 
             recorder.relate_then_push(topics_graph, rnode)
 
-if __name__ == "__main__":
-    execute(sys.argv[1])
+        print 'Sleeping for 60s'
+        sleep(60)
 
-"""
-Data types:
-feeds = list of feed objects
-feed = singular rss feed
-topic = list of 1 or more topic nodes.
-record_value = the data in the record node (the url to the feed entry)
-tnode = py2neo subgraph object for the topic node(s).
-rnode = py2neo node object for record_value
-"""
+
+if __name__ == "__main__":
+    execute(sys.argv[1], 'links.txt')
+    # more metadata
+    # runtime with large feeds

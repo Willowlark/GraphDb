@@ -56,10 +56,10 @@ def get_unstructured_topic(extracted, keys=('id', 'title', 'summary')):
     `keys` the optional list of args that are the keys of the associative dictionary extracted to have topics extracted
     `return` the set of the unique topic candidate instances to be inserted by RssGrapher 
     """
-    ret = set()
+    ret = []
     for key in keys:
-        ret.update(_parse_topics(extracted[key]))
-    return ret
+        ret.extend(_parse_topics(extracted[key]))
+    return ret, extracted['link']
 
 def _structured_topic(body_of_text, try_markup=False):
     """
@@ -90,7 +90,7 @@ def _parse_topics(body_of_text):
         for title in labels[label]:
             strength = counts[title]
             listing.append(Topic_Candidate(title, strength, label))
-    return listing
+    return set(listing)
 
 def _parse_topics_not_nouns(*kargs):
     """
@@ -120,7 +120,7 @@ def is_structured(data):
     """
     try:
         json.loads(data)
-    except ValueError:
+    except:
         return False
     return True
 
