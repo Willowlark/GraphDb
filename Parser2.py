@@ -3,6 +3,7 @@
 import nltk
 from collections import defaultdict
 from pprint import pprint
+import timeit
 
 class Topic_Candidate(object):
     """
@@ -18,10 +19,12 @@ class Topic_Candidate(object):
     def __str__(self):
         return self.__repr__()
 
-    def __init__(self, topic, strength, label):
+    def __init__(self, topic, strength, label, after, before):
         self.title = topic
         self.strength = strength
         self.label = label
+        self.after = after
+        self.before = before
 
 
 document = """ASRC Federal Mission Solutions Rowan Collaboration Program – Fall, 2016
@@ -147,7 +150,7 @@ def _get_continuous_chunks_NP(tagged):
     labels = defaultdict(set) # the dictionary of labels whose values are associated sets of topics
     counts =  defaultdict(int)  # the dictionary of topics whose value is the count of appearances in the entire body of text
     before, after = defaultdict(list), defaultdict(list)
-    for chunked in nltk.ne_chunk_sents(tagged, binary=True):
+    for chunked in nltk.ne_chunk_sents(tagged, binary=False):
         a, b = [], []
         current_chunk = []
         for i in chunked:
@@ -160,22 +163,39 @@ def _get_continuous_chunks_NP(tagged):
                 before[token].extend(b)
             elif current_chunk:
                 current_chunk = []
+                after[token].append(i)
             else:
                 b.append(i)
                 after[token].append(i)
 
-    return labels, counts, before, after
+    return labels, counts, dict(before), dict(after)
 
-processed = preproc(document)
-listing = []
-labels, counts, before, after = _get_continuous_chunks_NP(processed)
-for label in labels.keys():
-    for title in labels[label]:
-        strength = counts[title]
-        listing.append(Topic_Candidate(title, strength, label))
-print set(listing)
-print 'before'
-pprint(dict(before))
-print
-print 'after'
-pprint(dict(after))
+def main():
+    processed = preproc(document)
+    listing = []
+    labels, counts, before, after = _get_continuous_chunks_NP(processed)
+    print 'before'
+    pprint(before)
+    print
+    print 'after'
+    pprint(after)
+    for k in after.keys():
+        print k,
+    print
+    for k in before.keys():
+        print k,
+    print
+    for label in labels.keys():
+        for title in labels[label]:
+            strength = counts[title]
+            try:
+                afts = after[title][:5]
+            except Exception:
+                pass
+            befs = before[title][-5:]
+            listing.append(Topic_Candidate(title, strength, label, afts, befs))
+    for elem in set(listing):
+        print elem
+        print '\t', vars(elem)
+if __name__ == '__main__':
+    main()
