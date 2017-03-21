@@ -80,7 +80,7 @@ class Recorder:
         for topic in topic_candidates:
             match = self.graph.find_one("Topic", property_key='name', property_value=topic.title)
             if not match: return False # Not in the DB
-            listing.append(match)
+            listing.append(topic.update_node(match))
         return self._subgraphify(listing)
 
     def get_or_add_topics(self, topic_candidates):

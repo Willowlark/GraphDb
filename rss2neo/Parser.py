@@ -32,6 +32,10 @@ class Topic_Candidate(object):
     def keywordify(self):
         return {'name':self.title, 'strength':self.strength}
 
+    def update_node(self, node):
+        node['strength'] += self.strength
+        return node
+
 """
 This file stores the static methods to interpret topic candidates from zero or more bodies of text.
 The work that accomplishes this is in the method parse_topics
