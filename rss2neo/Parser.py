@@ -29,6 +29,8 @@ class Topic_Candidate(object):
         self.strength = strength
         self.label = label
 
+    def keywordify(self):
+        return {'name':self.title, 'strength':self.strength}
 
 """
 This file stores the static methods to interpret topic candidates from zero or more bodies of text.
@@ -59,7 +61,7 @@ def get_unstructured_topic(extracted, keys=('id', 'title', 'summary')):
     ret = []
     for key in keys:
         ret.extend(_parse_topics(extracted[key]))
-    return ret, extracted['link']
+    return ret
 
 def _structured_topic(body_of_text, try_markup=False):
     """

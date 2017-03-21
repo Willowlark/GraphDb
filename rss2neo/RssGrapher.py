@@ -17,15 +17,18 @@ def execute(graphAddress, path):
         feeds = feeder.load_feeds()
         for feed in feeds:
             extracted = feed.extract()
+            record_value = feed.record_content()
+
+            rnode = recorder.add_record(record_value)
+            if not rnode:  # The node wasn't created because it already exists, move on.
+                continue
 
             if Parser.is_structured(extracted):
-                topics, record_value = Parser.get_structured_topic(extracted)
+                topics = Parser.get_structured_topic(extracted)
             else:
-                topics, record_value = Parser.get_unstructured_topic(extracted)
+                topics = Parser.get_unstructured_topic(extracted)
 
             topics_graph = recorder.get_or_add_topics(topics)
-
-            rnode = recorder.add_record(record_value) #confirm doesn't exist
 
             recorder.relate_then_push(topics_graph, rnode)
 

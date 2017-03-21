@@ -12,11 +12,12 @@ class Recorder:
 
     `graph`: The global for the graph to connect to.
 
-    `confirm_mode`: A flag that can be set to 1) prevent the adding methods from adding
+    `hold_uploads`: A flag that can be set to 1) prevent the adding methods from adding
     to the graph, limiting them to only returning the created node; and 2) require a user
     input for push operation. For safety mostly, unlikely needed.
     """
     graph = None
+    hold_uploads = False
     confirm_mode = False
 
     def initialize(self, graph_address):
@@ -44,13 +45,13 @@ class Recorder:
             base = base | graph
         return base
 
-    def add_topic(self, topic_candidates):
+    def _add_topics(self, topic_candidates):
         """
         `Author`: Bill Clark
 
         Adds a list of topics to the graph as new nodes. This doesn't check if the node
         already exists; use get_or_add_topics for that. The nodes are returned regardless,
-        but are only pushed if confirm_mode is off.
+        but are only pushed if hold_uploads is off.
 
         `topics`: A list of string Topics to be added. The string value will be the name
         property of the node, while the label will be Topic.
@@ -59,12 +60,12 @@ class Recorder:
         """
         listing = []
         for topic in topic_candidates:
-            n = Node("Topic", name=topic.title)
-            if self.confirm_mode: self.graph.create(n)
+            n = Node("Topic", **topic.keywordify())
+            if self.hold_uploads: self.graph.create(n)
             listing.append(n)
         return self._subgraphify(listing)
 
-    def fetch_topics(self, topic_candidates):
+    def _fetch_topics(self, topic_candidates):
         """
         `Author`: Bill Clark
 
@@ -78,6 +79,7 @@ class Recorder:
         listing = []
         for topic in topic_candidates:
             match = self.graph.find_one("Topic", property_key='name', property_value=topic.title)
+            if not match: return False # Not in the DB
             listing.append(match)
         return self._subgraphify(listing)
 
@@ -96,10 +98,10 @@ class Recorder:
         """
         listing = []
         for topic in topic_candidates:
-            if self.has_topic([topic]):
-                listing.append(self.fetch_topics([topic]))
-            else:
-                listing.append(self.add_topic([topic]))
+            fetch = self._fetch_topics([topic])
+            if not fetch:
+                fetch = self._add_topics([topic])
+            listing.append(fetch)
         return self._subgraphify(listing)
 
     def add_record(self, data):
@@ -114,25 +116,15 @@ class Recorder:
 
         `return`: the node created.
         """
+        if self.has_record(data): return False
         n = Node("Record", content=data)
-        if self.confirm_mode: self.graph.create(n)
+        if self.hold_uploads: self.graph.create(n)
         return n
 
-    def has_topic(self, topic_candidates):
-        """
-        `Author`: Bill Clark
-
-        Checks a list of topics for existence in the graph. One failure in the list
-        fails the list. Can only be used with Topics.
-
-        `topic_candidates`: list of topics (string holding name value) to confirm existence of.
-
-        `return`: boolean, true iff all topics are contained.
-        """
-        for topic in topic_candidates:
-            if not self.graph.find_one("Topic", property_key="name", property_value=topic.title):
-                return False
-        return True
+    def has_record(self, data):
+        if self.graph.find_one("Record", property_key="content", property_value=data):
+            return True
+        else: return False
 
     def relate_then_push(self, topic_subgraph, record_node):
         """
@@ -172,19 +164,20 @@ class Recorder:
         `Author`: Bill Clark
 
         Pushes changes to the graph database, as well as creates any new nodes in the
-        subgraph. Contains a user input check mode only activated when the confirm_mode
+        subgraph. Contains a user input check mode only activated when the hold_uploads
         flag is true.
 
         `subgraph`: The subgraph to update and create.
 
         `return`: -1 on a failure, else None.
         """
-        if self.confirm_mode:
+        if self.hold_uploads and self.confirm_mode:
             print subgraph
             if raw_input("Confirm with y: ") != "y":
                 return -1
         self.graph.push(subgraph)
         self.graph.create(subgraph)
+        # stats printout
 
 if __name__ == "__main__":
     rec = Recorder()
