@@ -41,7 +41,7 @@ class Feeder:
         try:
             for i, line in enumerate(input_file):
                 self.links.append(line)
-                print line,
+                #print line,
         finally:
             input_file.close()
 
