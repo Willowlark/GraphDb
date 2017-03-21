@@ -11,8 +11,13 @@ class Recorder:
     that class, but are basic enough to be reused easily. Most return subgraphs.
 
     `graph`: The global for the graph to connect to.
+
+    `immediate_mode`: A flag that can be set to 1) prevent the adding methods from adding
+    to the graph, limiting them to only returning the created node; and 2) require a user
+    input for push operation. For safety mostly, unlikely needed.
     """
     graph = None
+    immediate_mode = True  # Better runtime, creates everything at once.
     confirm_mode = False
 
     def initialize(self, graph_address):
@@ -45,7 +50,8 @@ class Recorder:
         `Author`: Bill Clark
 
         Adds a list of topics to the graph as new nodes. This doesn't check if the node
-        already exists; use get_or_add_topics for that. The nodes are returned regardless.
+        already exists; use get_or_add_topics for that. The nodes are returned regardless,
+        but are only pushed if immediate_mode is off.
 
         `topics`: A list of string Topics to be added. The string value will be the name
         property of the node, while the label will be Topic.
@@ -55,6 +61,7 @@ class Recorder:
         listing = []
         for topic in topic_candidates:
             n = Node("Topic", **topic.keywordify())
+            if self.immediate_mode: self.graph.create(n)
             listing.append(n)
         return self._subgraphify(listing)
 
@@ -111,6 +118,7 @@ class Recorder:
         """
         if self.has_record(data): return False
         n = Node("Record", content=data)
+        if self.immediate_mode: self.graph.create(n)
         return n
 
     def has_record(self, data):
