@@ -163,12 +163,12 @@ def _get_continuous_chunks_NP(tagged):
                 before[token].extend(b)
             elif current_chunk:
                 current_chunk = []
-                after[token].append(i)
             else:
-                b.append(i)
-                after[token].append(i)
+                pass
+            b.append("".join([token for token, _ in i.leaves()]) if type(i) == nltk.tree else i[0])
+            after[token].append("".join([token for token, _ in i.leaves()]) if type(i) == nltk.tree else i[0])
 
-    return labels, counts, dict(before), dict(after)
+    return dict(labels), dict(counts), dict(before), dict(after)
 
 def main():
     processed = preproc(document)
