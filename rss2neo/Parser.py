@@ -30,10 +30,10 @@ class Topic_Candidate(object):
         self.label = label
 
     def keywordify(self):
-        return {'name':self.title, 'strength':self.strength}
+        return {'name': self.title, 'strength': self.strength}
 
     def update_node(self, node):
-        node['strength'] += self.strength
+        node['strength'] = self.strength
         return node
 
 """

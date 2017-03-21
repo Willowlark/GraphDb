@@ -17,7 +17,7 @@ class Recorder:
     input for push operation. For safety mostly, unlikely needed.
     """
     graph = None
-    immediate_mode = True  # Better runtime, creates everything at once.
+    immediate_mode = True  # Bit slower, but eliminates duplicates in the same article.
     confirm_mode = False
 
     def initialize(self, graph_address):
@@ -156,7 +156,8 @@ class Recorder:
         """
         listing = []
         for node in topic_subgraph.nodes():
-            listing.append(Relationship(record_node, 'Related', node))
+            listing.append(Relationship(record_node, 'Related', node, weight=node['strength']))
+            del node['strength']
         return self._subgraphify(listing) | record_node
 
     def push(self, subgraph):
@@ -177,7 +178,6 @@ class Recorder:
                 return -1
         self.graph.push(subgraph)
         self.graph.create(subgraph)
-        print 'Record has', len(subgraph.relationships()), 'relations to',  len(subgraph.nodes()), 'Topics.'
 
 if __name__ == "__main__":
     rec = Recorder()

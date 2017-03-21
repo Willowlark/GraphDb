@@ -12,7 +12,7 @@ def execute(graphAddress, path):
     recorder.initialize(graphAddress)
     feeder = Feeder.Feeder(path)
 
-    if True:
+    while True:
 
         feeds = feeder.load_feeds()
         for feed in feeds:
@@ -33,7 +33,7 @@ def execute(graphAddress, path):
             recorder.relate_then_push(topics_graph, rnode)
 
         print 'Sleeping for 60s'
-        #sleep(60)
+        sleep(60)
 
 def _timer(method, args):
     import time
@@ -44,5 +44,5 @@ def _timer(method, args):
 
 
 if __name__ == "__main__":
-    #execute(sys.argv[1], 'links.txt')
-    _timer(execute, [sys.argv[1], 'links.txt'])
+    execute(sys.argv[1], 'links.txt')
+    #_timer(execute, [sys.argv[1], 'links.txt'])
