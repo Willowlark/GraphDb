@@ -2,6 +2,7 @@
 
 import nltk
 from collections import defaultdict
+from colors import red, green, blue
 from pprint import pprint
 import timeit
 
@@ -14,10 +15,10 @@ class Topic_Candidate(object):
     """
 
     def __repr__(self):
-        return self.title
+        return self.__str__()
 
     def __str__(self):
-        return self.__repr__()
+        return str(self.title)
 
     def __init__(self, topic, strength, label, after, before):
         self.title = topic
@@ -78,19 +79,6 @@ Goals
 [f]good name, great objective
 [g]What does other data constitute? other software that can be used, or maybe other information on the work so far? What does the future hold?"""
 
-def getNodes2(parent, nnp={}, key=None):
-    ROOT = 'ROOT'
-    new_key = None
-    for node in parent:
-        if type(node) is nltk.Tree:
-            nnp[node.leaves()[0]] = []
-            new_key = node.leaves()[0]
-            getNodes(node, nnp, new_key)
-        else:
-            try:
-                nnp[key].append(node)
-            except Exception:
-                pass
 
 def preproc(document):
     sentences = nltk.sent_tokenize(document) #tokenize sentence into sentences
@@ -125,20 +113,6 @@ def preproc(document):
 #             pass
 #         print
 
-def getNodes(parent):
-    for node in parent:
-        if type(node) is nltk.Tree:
-            if node.label() == 'ROOT':
-                print "======== Sentence ========="
-                print "Sentence:", " ".join(node.leaves())
-            else:
-                print "Label:", node.label()
-                print "Leaves:", node.leaves()
-
-            getNodes(node)
-        else:
-            print "Word:", node
-
 def _get_continuous_chunks_NP(tagged):
     """
     This method return the dictionaries of critical words in the pre-processed text, tagged, that store info to be used by the graph database.
@@ -150,8 +124,9 @@ def _get_continuous_chunks_NP(tagged):
     labels = defaultdict(set) # the dictionary of labels whose values are associated sets of topics
     counts =  defaultdict(int)  # the dictionary of topics whose value is the count of appearances in the entire body of text
     before, after = defaultdict(list), defaultdict(list)
+    b = []
     for chunked in nltk.ne_chunk_sents(tagged, binary=False):
-        a, b = [], []
+        a = []
         current_chunk = []
         for i in chunked:
             if type(i) == nltk.Tree:
@@ -161,41 +136,37 @@ def _get_continuous_chunks_NP(tagged):
                 counts[token] += 1
                 current_chunk.append(token)
                 before[token].extend(b)
-            elif current_chunk:
-                current_chunk = []
+                if current_chunk:
+                    current_chunk = []
+                    b = []
+                else:
+                    pass
+                b.append(token)
+                after[token].append(token)
             else:
-                pass
-            b.append("".join([token for token, _ in i.leaves()]) if type(i) == nltk.tree else i[0])
-            after[token].append("".join([token for token, _ in i.leaves()]) if type(i) == nltk.tree else i[0])
+                b.append(i[0])
+                after[token].append(i[0])
 
     return dict(labels), dict(counts), dict(before), dict(after)
 
-def main():
+def main(n):
     processed = preproc(document)
     listing = []
     labels, counts, before, after = _get_continuous_chunks_NP(processed)
-    print 'before'
-    pprint(before)
-    print
-    print 'after'
-    pprint(after)
-    for k in after.keys():
-        print k,
-    print
-    for k in before.keys():
-        print k,
-    print
     for label in labels.keys():
         for title in labels[label]:
             strength = counts[title]
-            try:
-                afts = after[title][:5]
-            except Exception:
-                pass
-            befs = before[title][-5:]
+            afts = after[title][:n]
+            befs = before[title][-n:]
+
+            print " ".join(befs), red(afts[0]), " ".join(afts[1:])
+
             listing.append(Topic_Candidate(title, strength, label, afts, befs))
+
+    print
     for elem in set(listing):
-        print elem
+        print green(repr(elem))
         print '\t', vars(elem)
+
 if __name__ == '__main__':
-    main()
+    main(10)
