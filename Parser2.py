@@ -5,6 +5,7 @@ import os
 import validators
 import unicodedata
 import timeit
+import operator
 from functools import wraps
 from collections import defaultdict
 from colors import red, green, blue
@@ -176,7 +177,7 @@ def _new_get_continuous_chunks_NP(tagged):
     depths = defaultdict(int)   # the dictionary of associated depths is number of words the topic title is within the body of text
     prefixes = defaultdict(str) # the dictionary of the one title that is the immediate suffix title of the key
     suffixes = defaultdict(str) # the dictionary of the  one title that is the immediate prefix title of the key
-
+    commons = defaultdict(int) # the commonalities of unique tagged words throughout the document
 
     before_words = [] # list to reserve preceding words, recreated with each new topic
     suffix_title = None # the token that represents the title that came before the one being examined
@@ -208,20 +209,22 @@ def _new_get_continuous_chunks_NP(tagged):
                     prefixes[title] = None
                 suffixes[suffix_title] = title
                 suffix_title = title
+                commons[title] += 1
             else:
                 before_words.append(i[0])
                 if title is not None:
                     afters[title].append(i[0])
-            suffixes[title] = None
+                commons[i[0]] += 1
+        suffixes[title] = None # final title extracted has no suffix.
 
-    return dict(labels), dict(counts), dict(befores), dict(afters), dict(suffixes), dict(prefixes), dict(depths)
+    return dict(labels), dict(counts), dict(befores), dict(afters), dict(suffixes), dict(prefixes), dict(depths), dict(commons)
 
 
 @timer
 def main(n = None):
     processed = preproc(document)
     listing = []
-    labels, counts, befores, afters, suffixes, prefixes, depths = _new_get_continuous_chunks_NP(processed)
+    labels, counts, befores, afters, suffixes, prefixes, depths, commons = _new_get_continuous_chunks_NP(processed)
     for label in labels.keys():
         for title in labels[label]:
             strength = counts[title]
@@ -236,8 +239,7 @@ def main(n = None):
             listing.append(Topic_Candidate(title, strength, label, after, before, suffix, prefix, depth))
 
     print
-    S = sorted(set(listing), key = lambda k: k.depth) # sort by depth into the doc
-    for elem in S:
+    for elem in sorted(set(listing), key = lambda k: k.depth): # sort by depth into the doc
         print green(repr(elem))
         for var in vars(elem):
             print '\t', var, ":", getattr(elem, var)
@@ -245,15 +247,19 @@ def main(n = None):
         print
 
     # print words in context
-    word = S[0]
+    li = listing
+    word = li[0]
     while word is not None:
         print blue(' '.join(word.before)), red(str(word)), blue(' '.join(word.after))
         next = word.suffix
         word = None
-        for w in S:
+        for w in li:
             if next == w.title:
                 word = w
+                del w
                 break
+
+    print 'Other common words', sorted(commons.items(), key=operator.itemgetter(1))[-20:]
 
 
 if __name__ == '__main__':
