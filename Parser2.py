@@ -173,6 +173,17 @@ def preproc(document):
     tagged = [nltk.pos_tag(sent) for sent in tokenized] # tag the sentences in tokenized
     return tagged
 
+def reconstruct(listing):
+    # reconstruct the context of all topics from return listing alone
+    ret = ''
+    first_topic = listing[0]
+    topic = first_topic
+    ret += blue(' '.join(topic.before))
+    while topic is not None:
+        ret += ' ' + red(str(topic)) + ' ' + blue(' '.join(topic.after))
+        topic = topic.suffix
+    return ret
+
 
 def _new_get_continuous_chunks_NP(tagged):
     """
@@ -232,7 +243,7 @@ def _new_get_continuous_chunks_NP(tagged):
     return dict(labels), dict(counts), dict(befores), dict(afters), dict(suffixes), dict(prefixes), dict(depths), dict(commons)
 
 @timer
-def main2(n=None):
+def main(n=None):
     listing = []
     tagged = preproc(document)
     counts = defaultdict(int)
@@ -271,16 +282,10 @@ def main2(n=None):
             print '\t', var, ":", getattr(topic, var)
         print '\t', ' '.join(topic.before[-n:]), red(repr(topic)), ' '.join(topic.after[n:])
 
-    # reconstruct the context of all topics from return listing alone
-    first_topic = listing[0]
-    topic = first_topic
-    print blue(' '.join(topic.before)),
-    while topic is not None:
-        print red(str(topic)), blue(' '.join(topic.after)),
-        topic = topic.suffix
+    print reconstruct(listing)
 
 @timer
-def main(n = None):
+def main2(n = None):
     processed = preproc(document)
     listing = []
     labels, counts, befores, afters, suffixes, prefixes, depths, commons = _new_get_continuous_chunks_NP(processed)
@@ -322,4 +327,4 @@ def main(n = None):
 
 
 if __name__ == '__main__':
-    main2(10)
+    main(10)
