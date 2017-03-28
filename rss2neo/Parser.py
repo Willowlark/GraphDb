@@ -75,10 +75,22 @@ def get_unstructured_topic(extracted, keys=('id', 'title', 'summary'), make_set=
     `keys` the optional list of args that are the keys of the associative dictionary extracted to have topics extracted
     `return` the set of the unique topic candidate instances to be inserted by RssGrapher 
     """
-    ret = []
-    for key in keys:
-        ret.extend(_parse_topics(extracted[key], n))
-    return set(ret) if make_set else ret, extracted['link']
+
+    """Code to assign working path of nltk_data resource to local copy, if one exists else tell user to download"""
+    pathway_local_nltk_data = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'nltk_data')
+    if pathway_local_nltk_data:
+        print pathway_local_nltk_data
+        nltk.data.path.append(pathway_local_nltk_data)
+    else:
+        print nltk.data
+    try:
+        ret = []
+        for key in keys:
+            ret.extend(_parse_topics(extracted[key], n))
+        return set(ret) if make_set else ret, extracted['link']
+    except LookupError as e:
+        print red("ERROR Unable to find utilities od nltk resources\nConsider installing the resources by using the command >>>nltk.download(), or ensuring the resources are located in this project directory")
+
 
 def _reconstruct(listing):
     """
@@ -268,7 +280,7 @@ def _timer(function):
         t0 = timeit.default_timer()
         result = function(*args, **kwargs)
         t1 = timeit.default_timer()
-        diff = t1 -t0
+        diff = t1 - t0
         phrase = " Total time running '%s': %s seconds " %(red(function.func_name), green(str(diff)))
         print '\n{:*^150}\n'.format(phrase)
         return result, diff
@@ -315,17 +327,31 @@ def _process_input(input):
 
 @_timer
 def main(n):
-    """demo usage in context"""
+    """----demo usage in context----"""
 
-    body =_process_input(
-        'http://www.foxnews.com/us/2017/02/10/marine-vet-speaks-out-about-viral-video-supporting-trump-travel-ban.html')
+    """Code to assign working path of nltk_data resource to local copy, if one exists else tell user to download"""
+    print "Using path(s) to nltk resources:",
+    pathway_local_nltk_data = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'nltk_data')
+    if pathway_local_nltk_data:
+        print pathway_local_nltk_data
+        nltk.data.path.append(pathway_local_nltk_data)
+    else:
+        print nltk.data.path
+    try:
+        body =_process_input(
+            'http://www.foxnews.com/us/2017/02/10/marine-vet-speaks-out-about-viral-video-supporting-trump-travel-ban.html')
 
-    # Use in practical development of NP parser (parser of choice)
-    return _parse_topics(body, n)
-    # return _parse_topics_not_nouns(body)
+        #----Use in practical development of NP parser (parser of choice)----
+        return _parse_topics(body, n)
+        # return _parse_topics_not_nouns(body)
+    except LookupError as e:
+        print red(
+            "ERROR Unable to find utilities of nltk resources located at {}\nConsider installing the resources by using the command >>>nltk.download(), or ensuring the resources are located in this project directory".format(nltk.data.path))
+
 
 if __name__ == '__main__':
-    print green(str(main(10)[0]))
+    results = main(10)[0]
+    print(green(str(results)))
     sys.exit(0)
 
 
