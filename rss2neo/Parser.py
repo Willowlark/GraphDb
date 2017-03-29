@@ -66,7 +66,7 @@ def get_structured_topic(extracted):
     body_of_text = extracted['summary']
     return _structured_topic(body_of_text)
 
-def get_unstructured_topic(extracted, keys=('id', 'title', 'summary'), make_set=True, n=None):
+def get_unstructured_topic(extracted, keys=('id', 'title', 'summary'), make_set=True, debug=False):
     """
     used by external modules to gather the unstructured topics of the summary of the feed json
 
@@ -83,14 +83,10 @@ def get_unstructured_topic(extracted, keys=('id', 'title', 'summary'), make_set=
         nltk.data.path.append(pathway_local_nltk_data)
     else:
         print nltk.data
-    try:
-        ret = []
-        for key in keys:
-            ret.extend(_parse_topics(extracted[key], n))
-        return set(ret) if make_set else ret, extracted['link']
-    except LookupError as e:
-        print red("ERROR Unable to find utilities od nltk resources\nConsider installing the resources by using the command >>>nltk.download(), or ensuring the resources are located in this project directory")
-
+    ret = []
+    for key in keys:
+            ret.extend(_parse_topics(extracted[key], debug=debug))
+    return set(ret) if make_set else ret, extracted['link']
 
 def _reconstruct(listing):
     """
@@ -100,6 +96,14 @@ def _reconstruct(listing):
     :param listing:
     :return:
     """
+
+    # print topics of the NP persuasion
+    for topic in sorted(listing, key = lambda k: k.depth): # sort by depth into the doc
+        print green(repr(topic))
+        for var in vars(topic):
+            print '\t', var, ":", getattr(topic, var)
+        print '\t', ' '.join(topic.before[-10:]), red(repr(topic)), ' '.join(topic.after[:10])
+
     ret = ''
     first_topic = listing[0]
     topic = first_topic
@@ -122,7 +126,7 @@ def _structured_topic(body_of_text, try_markup=False):
         return mkup.to_json(body_of_text)
     return json.loads(body_of_text)
 
-def _parse_topics(body_of_text, n):
+def _parse_topics(body_of_text, debug=False):
     """
     Used for parsing topic candidates, form conjunctive crucial words, that are of the Noun persuasion.
     The instances of topic candidate that are returned will be used in the database as units for relation creation
@@ -133,7 +137,7 @@ def _parse_topics(body_of_text, n):
     if isinstance(body_of_text, unicode):
         body_of_text = unicodedata.normalize('NFKD', body_of_text).encode('ascii', 'ignore')
     processed = _info_extract_preprocess(body_of_text)   # preprocessed body for tagged words in sentence form
-    return _get_NP_topics(processed, n)
+    return _get_NP_topics(processed, debug=debug)
 
 def _parse_topics_not_nouns(*kargs):
     """
@@ -177,7 +181,7 @@ def _info_extract_preprocess(document):
     tagged = [nltk.pos_tag(sent) for sent in tokenized] # tag the sentences in tokenized
     return tagged
 
-def _get_NP_topics(tagged, n):
+def _get_NP_topics(tagged, debug=False):
     """
     this method creates and returns a list of topic candidate instances form the specified pre-processes body of text
     Each subdivided unit in the tagged param is processed only once, bounding the first half of this method to O(n).
@@ -215,14 +219,8 @@ def _get_NP_topics(tagged, n):
             if title == topic.title:
                 topic.count = count
 
-    # print topics of the NP persuasion
-    for topic in sorted(listing, key = lambda k: k.depth): # sort by depth into the doc
-        print green(repr(topic))
-        for var in vars(topic):
-            print '\t', var, ":", getattr(topic, var)
-        print '\t', ' '.join(topic.before[-n:]), red(repr(topic)), ' '.join(topic.after[n:])
-
-    print '\n', _reconstruct(listing)
+    if debug:
+        print '\n', _reconstruct(listing)
 
     return listing
 
@@ -326,32 +324,34 @@ def _process_input(input):
         return process_string(input)
 
 @_timer
-def main(n):
+def main(debug=False):
     """----demo usage in context----"""
 
-    """Code to assign working path of nltk_data resource to local copy, if one exists else tell user to download"""
-    print "Using path(s) to nltk resources:",
-    pathway_local_nltk_data = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'nltk_data')
-    if pathway_local_nltk_data:
-        print pathway_local_nltk_data
-        nltk.data.path.append(pathway_local_nltk_data)
-    else:
-        print nltk.data.path
-    try:
-        body =_process_input(
-            'http://www.foxnews.com/us/2017/02/10/marine-vet-speaks-out-about-viral-video-supporting-trump-travel-ban.html')
+    link = 'http://www.foxnews.com/us/2017/02/10/marine-vet-speaks-out-about-viral-video-supporting-trump-travel-ban.html'
+    body =_process_input(link)
+    """----Use in practical development of NP parser (parser of choice)----"""
+    extracted = {'summary': body, 'link': link}
+    return get_unstructured_topic(extracted, keys=['summary'], debug=debug)
+    # return _parse_topics_not_nouns(body)
 
-        #----Use in practical development of NP parser (parser of choice)----
-        return _parse_topics(body, n)
-        # return _parse_topics_not_nouns(body)
-    except LookupError as e:
-        print red(
-            "ERROR Unable to find utilities of nltk resources located at {}\nConsider installing the resources by using the command >>>nltk.download(), or ensuring the resources are located in this project directory".format(nltk.data.path))
 
+"""Code to assign working path of nltk_data resource to local copy, if one exists else tell user to download"""
+try:
+    # nltk.data.find(os.path.join('tokenizers', 'punkt.zip'))
+    pass
+except LookupError as e:
+    print "\tPlease choose the location of the nltk_data resource (see file dialogue)"
+    from  Tkinter import Tk
+    import Tkinter, Tkconstants, tkFileDialog
+    root = Tk()
+    directory = tkFileDialog.askdirectory()
+    nltk.data.path.append(directory)
+print "Using path(s) to nltk resources:", nltk.data.path
 
 if __name__ == '__main__':
-    results = main(10)[0]
-    print(green(str(results)))
+    results = main(debug=1)[0]
+    print 'results:', green(str(results[0]))
+    print 'link:', green(results[1])
     sys.exit(0)
 
 
