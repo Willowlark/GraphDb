@@ -349,7 +349,7 @@ except LookupError as e:
 print "Using path(s) to nltk resources:", nltk.data.path
 
 if __name__ == '__main__':
-    results = main(debug=1)[0]
+    results = main(debug=True)[0]
     print 'results:', green(str(results[0]))
     print 'link:', green(results[1])
     sys.exit(0)
