@@ -12,6 +12,8 @@ from collections import defaultdict
 from markup_parser import markup_parser
 from colors import red, green, blue
 
+DEBUG = False
+
 """
 This file stores the static methods to interpret topic candidates from zero or more bodies of text.
 The work that accomplishes this is in the method parse_topics
@@ -75,7 +77,7 @@ def get_structured_topic(extracted):
     body_of_text = extracted['summary']
     return _structured_topic(body_of_text)
 
-def get_unstructured_topic(extracted, keys=('id', 'title', 'summary'), make_set=True, debug=False):
+def get_unstructured_topic(extracted, keys=('id', 'title', 'summary'), make_set=True):
     """
      `Author` Bob S.
 
@@ -87,17 +89,9 @@ def get_unstructured_topic(extracted, keys=('id', 'title', 'summary'), make_set=
     `debug` optional argument for printing state of topic candidates before return
     `return` the set of the unique topic candidate instances to be inserted by RssGrapher
     """
-
-    """Code to assign working path of nltk_data resource to local copy, if one exists else tell user to download"""
-    pathway_local_nltk_data = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'nltk_data')
-    if pathway_local_nltk_data:
-        print pathway_local_nltk_data
-        nltk.data.path.append(pathway_local_nltk_data)
-    else:
-        print nltk.data
     ret = []
     for key in keys:
-            ret.extend(_parse_topics(extracted[key], debug=debug))
+            ret.extend(_parse_topics(extracted[key]))
     return set(ret) if make_set else ret, extracted['link']
 
 def _reconstruct(listing):
@@ -142,7 +136,7 @@ def _structured_topic(body_of_text, try_markup=False):
         return mkup.to_json(body_of_text)
     return json.loads(body_of_text)
 
-def _parse_topics(body_of_text, debug=False):
+def _parse_topics(body_of_text):
     """
     `Author` Bob S.
 
@@ -156,7 +150,7 @@ def _parse_topics(body_of_text, debug=False):
     if isinstance(body_of_text, unicode):
         body_of_text = unicodedata.normalize('NFKD', body_of_text).encode('ascii', 'ignore')
     processed = _info_extract_preprocess(body_of_text)   # preprocessed body for tagged words in sentence form
-    return _get_NP_topics(processed, debug=debug)
+    return _get_NP_topics(processed)
 
 def _parse_topics_not_nouns(*kargs):
     """
@@ -208,7 +202,7 @@ def _info_extract_preprocess(document):
     tagged = [nltk.pos_tag(sent) for sent in tokenized] # tag the sentences in tokenized
     return tagged
 
-def _get_NP_topics(tagged, debug=False):
+def _get_NP_topics(tagged):
     """
     `Author` Bob S.
 
@@ -251,7 +245,7 @@ def _get_NP_topics(tagged, debug=False):
             if title == topic.title:
                 topic.count = count
 
-    if debug:
+    if DEBUG:
         _reconstruct(listing)
 
     return listing
@@ -359,14 +353,14 @@ def _process_input(input):
         return process_string(input)
 
 @_timer
-def main(debug=False):
+def main():
     """----demo usage in context----"""
 
     link = 'http://www.foxnews.com/us/2017/02/10/marine-vet-speaks-out-about-viral-video-supporting-trump-travel-ban.html'
     body =_process_input(link)
     """----Use in practical development of NP parser (parser of choice)----"""
     extracted = {'summary': body, 'link': link}
-    return get_unstructured_topic(extracted, keys=['summary'], debug=debug)
+    return get_unstructured_topic(extracted, keys=['summary'])
     # return _parse_topics_not_nouns(body)
 
 
@@ -381,12 +375,15 @@ except LookupError as e:
     root = Tk()
     directory = tkFileDialog.askdirectory()
     nltk.data.path.append(directory)
-print "Using path(s) to nltk resources:", nltk.data.path
+
+if DEBUG:
+    print "Using path(s) to nltk resources:", nltk.data.path
 
 if __name__ == '__main__':
-    results = main(debug=True)[0]
-    print 'results:', green(str(results[0]))
-    print 'link:', green(results[1])
+    results = main()[0]
+    if DEBUG:
+        print 'results:', green(str(results[0]))
+        print 'link:', green(results[1])
     sys.exit(0)
 
 
