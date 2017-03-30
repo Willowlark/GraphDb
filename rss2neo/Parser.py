@@ -43,6 +43,13 @@ class Topic_Candidate(object):
         self.suffix = suffix
         self.prefix = prefix
 
+    def keywordify(self):
+        return {'name': self.title, 'strength': self.strength}
+
+    def update_node(self, node):
+        node['strength'] = self.strength
+        return node
+
     def __eq__(self, other):
         return self.title == other.title
 
@@ -90,8 +97,8 @@ def get_unstructured_topic(extracted, keys=('id', 'title', 'summary'), make_set=
         print nltk.data
     ret = []
     for key in keys:
-            ret.extend(_parse_topics(extracted[key], debug=debug))
-    return set(ret) if make_set else ret, extracted['link']
+        ret.extend(_parse_topics(extracted[key]))
+    return ret
 
 def _reconstruct(listing):
     """

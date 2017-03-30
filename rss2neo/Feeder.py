@@ -17,6 +17,9 @@ class Feed:
     def extract(self):
         return {k: self.feed[k] for k in ('id', 'title', 'link', 'summary')}
 
+    def record_content(self):
+        return self.feed['link']
+
 # * Created by Eliakah kakou
 # Feeder.py
 # This class gets an RSS feed and manipulates
@@ -33,13 +36,12 @@ class Feeder:
         for i in range(len(self.links)):
             self.feeds.extend(self.getFeeds(self.links[i]))
 
-
     def getLinks(self, file):
         input_file = open(file)
         try:
             for i, line in enumerate(input_file):
                 self.links.append(line)
-                print line,
+                #print line,
         finally:
             input_file.close()
 
