@@ -57,6 +57,8 @@ class Topic_Candidate(object):
 
 def get_structured_topic(extracted):
     """
+    `Author` Bob S.
+
     used by external modules to gather the structured topics of the summary of the feed json
     make_set is used to specify whether a set of unique topic candidate instances is formed from the result of the call to _strucutred_topic
 
@@ -68,12 +70,15 @@ def get_structured_topic(extracted):
 
 def get_unstructured_topic(extracted, keys=('id', 'title', 'summary'), make_set=True, debug=False):
     """
-    used by external modules to gather the unstructured topics of the summary of the feed json
+     `Author` Bob S.
 
+    used by external modules to gather the unstructured topics of the summary of the feed json
 
     `extracted` the json object of the feed being examined
     `keys` the optional list of args that are the keys of the associative dictionary extracted to have topics extracted
-    `return` the set of the unique topic candidate instances to be inserted by RssGrapher 
+    `make_set` optional argument for creating set of unique instances on return
+    `debug` optional argument for printing state of topic candidates before return
+    `return` the set of the unique topic candidate instances to be inserted by RssGrapher
     """
 
     """Code to assign working path of nltk_data resource to local copy, if one exists else tell user to download"""
@@ -90,11 +95,12 @@ def get_unstructured_topic(extracted, keys=('id', 'title', 'summary'), make_set=
 
 def _reconstruct(listing):
     """
+    `Author` Bob S.
+
     reconstruct the context of all topics from return listing alone.
     Requisite: the listing must be a list of topics already ordered by the order that they appear in the body of text where they were found
 
-    :param listing:
-    :return:
+    `listing` the list of ORDERED topic candidate instances being iterated
     """
 
     # print topics of the NP persuasion
@@ -112,13 +118,16 @@ def _reconstruct(listing):
         ret += ' ' + red(str(topic)) + ' ' + blue(' '.join(topic.after))
         topic = topic.suffix
     ret += '\n'
-    return ret
+    print ret
 
 def _structured_topic(body_of_text, try_markup=False):
     """
+    `Author` Bob S.
+
     This method will render the list of structured topics form the predisposed format of data, a JSON string.
 
-    `kargs` the list of zero or more literal strings to be parsed from the rss feed
+    `body_of_text` the string to be parsed from the rss feed
+    `try_markup` the optional argument to attempt to markup the body of text as json for manipulation
     `return` ret, the list of structured topics from the body of text
     """
     if try_markup and not is_structured(body_of_text):
@@ -128,11 +137,14 @@ def _structured_topic(body_of_text, try_markup=False):
 
 def _parse_topics(body_of_text, debug=False):
     """
+    `Author` Bob S.
+
     Used for parsing topic candidates, form conjunctive crucial words, that are of the Noun persuasion.
     The instances of topic candidate that are returned will be used in the database as units for relation creation
 
-    `kargs` - the params (in the form zero or more) of raw bodies of text to be processed
-    `yield` topic candidates - the generated collection of Noun based topics that have been extracted and constructed
+    `body_of_text` - the raw body of text to be processed
+    `debug` optional argument for printing state of topic candidates before return
+    `return` topic candidates - the generated collection of Noun based topics that have been extracted and constructed
     """
     if isinstance(body_of_text, unicode):
         body_of_text = unicodedata.normalize('NFKD', body_of_text).encode('ascii', 'ignore')
@@ -141,6 +153,8 @@ def _parse_topics(body_of_text, debug=False):
 
 def _parse_topics_not_nouns(*kargs):
     """
+    `Author` Bob S.
+
     Method used for parsing topics that are not conjunctive noun words.
     Second to the NP form that is preferred use. Does not produce effective NNPs.
     However, only means to yield the non-nouns words of interest
@@ -148,12 +162,16 @@ def _parse_topics_not_nouns(*kargs):
     `kargs` - the params (in the form zero or more) raw bodies of text to be processed
     `yield` topic candidates - the generated collection of non-Noun topics that have been extracted and constructed
     """
+    ret = []
     for body_of_text in kargs:
         processed = _info_extract_preprocess(body_of_text)   # preprocessed body for tagged words in sentence form
-        yield _get_non_NP_topics(processed)
+        ret.append(_get_non_NP_topics(processed))
+    return ret
 
 def is_structured(data):
     """
+    `Author` Bob S.
+
     This method determines if the given python string, data, is structured data or not.
     Structured data is information in the format the development team has agreed on using as the format to be used when we not examining raw, unfiltered text.
     This format is JSON.
@@ -169,6 +187,8 @@ def is_structured(data):
 
 def _info_extract_preprocess(document):
     """
+    `Author` Bob S.
+
     This method is used to perform the reiterative process of preparing the given body of text to be parsed.
     First the sentences are tokenized using the default method of sent_tokenize(), next, the words are tokenized one by one.
     Finally those words are tagged by the default tagger of pos_tagger()
@@ -183,10 +203,15 @@ def _info_extract_preprocess(document):
 
 def _get_NP_topics(tagged, debug=False):
     """
+    `Author` Bob S.
+
     this method creates and returns a list of topic candidate instances form the specified pre-processes body of text
     Each subdivided unit in the tagged param is processed only once, bounding the first half of this method to O(n).
     Then for each unique word form the tagged text, its number of appearances is counted and all associated topics have their count incremented to reflect this measure.
     Finally the list is returned in one state to be returned to the get_topics method
+
+    `tagged` the pre-processed body of text returned form the ie_preprocess() method
+    `debug` optional argument for printing state of topic candidates before return
     """
     listing = []
     counts = defaultdict(int)
@@ -220,12 +245,14 @@ def _get_NP_topics(tagged, debug=False):
                 topic.count = count
 
     if debug:
-        print '\n', _reconstruct(listing)
+        _reconstruct(listing)
 
     return listing
 
 def _get_non_NP_topics(tagged):
     """
+    `Author` Bob S.
+
     This method is the only viable alternative to gathering stats on non-noun base words for topic making.
     Leverages the concept of grammar parsing (or using a commented out regex parser) to garner verb and adjective topics
 
@@ -272,6 +299,7 @@ def _get_non_NP_topics(tagged):
                 yield Topic_Candidate(title=title, strength=strength, label=label)
 
 def _timer(function):
+    """ easy wrapper class for determining runtime of wrapped method"""
 
     @wraps(function)
     def func_timer(*args, **kwargs):
