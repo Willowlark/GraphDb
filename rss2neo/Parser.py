@@ -97,8 +97,8 @@ def get_unstructured_topic(extracted, keys=('id', 'title', 'summary'), make_set=
         print nltk.data
     ret = []
     for key in keys:
-        ret.extend(_parse_topics(extracted[key]))
-    return ret
+            ret.extend(_parse_topics(extracted[key], debug=debug))
+    return set(ret) if make_set else ret, extracted['link']
 
 def _reconstruct(listing):
     """
@@ -260,8 +260,6 @@ def _get_non_NP_topics(tagged):
     """
     `Author` Bob S.
 
-    `Author` Bob S.
-
     This method is the only viable alternative to gathering stats on non-noun base words for topic making.
     Leverages the concept of grammar parsing (or using a commented out regex parser) to garner verb and adjective topics
 
@@ -386,7 +384,9 @@ except LookupError as e:
 print "Using path(s) to nltk resources:", nltk.data.path
 
 if __name__ == '__main__':
-    print main()
+    results = main(debug=True)[0]
+    print 'results:', green(str(results[0]))
+    print 'link:', green(results[1])
     sys.exit(0)
 
 
