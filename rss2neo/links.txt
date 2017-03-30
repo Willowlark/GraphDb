@@ -1,2 +1,2 @@
-http://www.androidpolice.com/feed/
 http://feeds.feedburner.com/DroidLife
+http://www.androidpolice.com/feed/

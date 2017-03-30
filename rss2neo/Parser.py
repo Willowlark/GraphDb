@@ -98,7 +98,7 @@ def get_unstructured_topic(extracted, keys=('id', 'title', 'summary'), make_set=
     ret = []
     for key in keys:
             ret.extend(_parse_topics(extracted[key], debug=debug))
-    return set(ret) if make_set else ret, extracted['link']
+    return set(ret) if make_set else ret
 
 def _reconstruct(listing):
     """
@@ -188,7 +188,7 @@ def is_structured(data):
     """
     try:
         json.loads(data)
-    except ValueError:
+    except:
         return False
     return True
 
@@ -249,7 +249,7 @@ def _get_NP_topics(tagged, debug=False):
     for title, count in counts.iteritems():
         for topic in listing:
             if title == topic.title:
-                topic.count = count
+                topic.strength = count
 
     if debug:
         _reconstruct(listing)
