@@ -16,6 +16,11 @@ import pattern.en
 
 DEBUG = True
 
+"""Set the 'infl' var to use a pre-built switch for singularization
+Used to tell if a given noun is singular or not, then pattern.re is used to singularize it"""
+# infl = inflect.engine()
+infl = None
+
 """
 This file stores the static methods to interpret topic candidates from zero or more bodies of text.
 The work that accomplishes this is in the method parse_topics
@@ -106,13 +111,12 @@ def _reconstruct(listing):
     """
     `Author` Bob S.
 
+    Used extensively for demo and debugging
     reconstruct the context of all topics from return listing alone.
     Requisite: the listing must be a list of topics already ordered by the order that they appear in the body of text where they were found
 
     `listing` the list of ORDERED topic candidate instances being iterated
     """
-
-    # print topics of the NP persuasion
     for topic in sorted(listing, key = lambda k: k.depth): # sort by depth into the doc
         print green(repr(topic))
         for var in topic.keywordify():
@@ -160,7 +164,7 @@ def _parse_topics(body_of_text):
     processed = _info_extract_preprocess(body_of_text)   # preprocessed body for tagged words in sentence form
     return _get_NP_topics(processed)
 
-def _parse_topics_not_nouns(*kargs):
+def _parse_topics_not_nouns(body_of_text):
     """
     `Author` Bob S.
 
@@ -171,11 +175,10 @@ def _parse_topics_not_nouns(*kargs):
     `kargs` - the params (in the form zero or more) raw bodies of text to be processed
     `yield` topic candidates - the generated collection of non-Noun topics that have been extracted and constructed
     """
-    ret = []
-    for body_of_text in kargs:
-        processed = _info_extract_preprocess(body_of_text)   # preprocessed body for tagged words in sentence form
-        ret.append(_get_non_NP_topics(processed))
-    return ret
+    if isinstance(body_of_text, unicode):
+        body_of_text = unicodedata.normalize('NFKD', body_of_text).encode('ascii', 'ignore')
+    processed = _info_extract_preprocess(body_of_text)   # preprocessed body for tagged words in sentence form
+    return _get_non_NP_topics(processed)
 
 def is_structured(data):
     """
@@ -206,7 +209,7 @@ def _info_extract_preprocess(document):
     `return` tagged - the tokenized, then tagged body of sentence delimited text.
     """
     sentences = nltk.sent_tokenize(document) #tokenize sentence into sentences
-    tokenized = [nltk.word_tokenize(sent) for sent in sentences] # tokenize each sentencs in sentences into tokenized
+    tokenized = [nltk.word_tokenize(sent) for sent in sentences] # tokenize each sentences in sentences into tokenized
     tagged = [nltk.pos_tag(sent) for sent in tokenized] # tag the sentences in tokenized
     return tagged
 
@@ -282,8 +285,7 @@ def _get_non_NP_topics(tagged):
 
     """
     An alternative to pre-def grammar features chunking and chinking rules.
-    This method failed to provide an increase in accuracy but will remain for posterity.
-
+    This method failed to provide an increase in accuracy but has remained for posterity.
     >>> chunk_rule = ChunkRule("<.*>+", "Chunk everything")
     >>> chink_rule = ChinkRule("<VB\.>", "Chink on verbs/prepositions")
     >>> split_rule = SplitRule("<NN><VB>", "<DT><NN>",
@@ -293,7 +295,7 @@ def _get_non_NP_topics(tagged):
 
     for sentence in tagged:
         """
-        line used in tandem with the alt chunker seen above
+        this line used in tandem with the alt chunker (chunk_parser) seen above
 
         >>> chunked = chunk_parser.parse(sentence)
         """
@@ -375,6 +377,7 @@ def main():
 
 @_timer
 def non_noun_main(make_set=True):
+    """----demo usage in context----"""
 
     link = 'http://www.foxnews.com/us/2017/02/10/marine-vet-speaks-out-about-viral-video-supporting-trump-travel-ban.html'
     body =_process_input(link)
@@ -384,11 +387,12 @@ def non_noun_main(make_set=True):
             ret.extend(_parse_topics_not_nouns(extracted[key]))
     print ret
     s = set(ret) if make_set else ret
-    return s
+    return s, extracted['link']
+
 
 """Code to assign working path of nltk_data resource to local copy, if one exists else tell user to download"""
 try:
-    # nltk.data.find(os.path.join('tokenizers', 'punkt.zip'))
+    nltk.data.find(os.path.join('tokenizers', 'punkt.zip'))
     pass
 except LookupError as e:
     print "\tPlease choose the location of the nltk_data resource (see file dialogue)"
@@ -401,11 +405,9 @@ except LookupError as e:
 if DEBUG:
     print "Using path(s) to nltk resources:", nltk.data.path
 
-"""Set the infl var to use a pre-built switch for singulaization"""
-infl = inflect.engine()
-# infl = None
 
 if __name__ == '__main__':
+    # results = non_noun_main()[0]
     results = main()[0]
     if DEBUG:
         print 'results:', green(str(results[0]))
@@ -414,10 +416,6 @@ if __name__ == '__main__':
         for res in results[0]:
             print res.keywordify()
 
-    # results = non_noun_main()
-    # if DEBUG:
-    #     print 'results:', green(str(results[0]))
-    #     print 'link:', green(results[1])
     sys.exit(0)
 
 
