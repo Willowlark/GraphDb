@@ -3,7 +3,7 @@
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
 
-    <title>rss2neo API documentation</title>
+    <title>rss2neo.RssFeeder API documentation</title>
     <meta name="description" content="" />
 
   <link href='http://fonts.googleapis.com/css?family=Source+Sans+Pro:400,300' rel='stylesheet' type='text/css'>
@@ -971,16 +971,34 @@ table {
     <ul id="index">
 
 
-
-    <li class="set"><h3><a href="#header-submodules">Sub-modules</a></h3>
+    <li class="set"><h3><a href="#header-classes">Classes</a></h3>
       <ul>
-        <li class="mono"><a href="Grapher.m.html">rss2neo.Grapher</a></li>
-        <li class="mono"><a href="Parser.m.html">rss2neo.Parser</a></li>
-        <li class="mono"><a href="Recorder.m.html">rss2neo.Recorder</a></li>
-        <li class="mono"><a href="RssFeeder.m.html">rss2neo.RssFeeder</a></li>
-        <li class="mono"><a href="markup_parser.m.html">rss2neo.markup_parser</a></li>
+        <li class="mono">
+        <span class="class_name"><a href="#rss2neo.RssFeeder.Feed">Feed</a></span>
+        
+          
+  <ul>
+    <li class="mono"><a href="#rss2neo.RssFeeder.Feed.__init__">__init__</a></li>
+    <li class="mono"><a href="#rss2neo.RssFeeder.Feed.extract">extract</a></li>
+    <li class="mono"><a href="#rss2neo.RssFeeder.Feed.record_content">record_content</a></li>
+  </ul>
+
+        </li>
+        <li class="mono">
+        <span class="class_name"><a href="#rss2neo.RssFeeder.Feeder">Feeder</a></span>
+        
+          
+  <ul>
+    <li class="mono"><a href="#rss2neo.RssFeeder.Feeder.__init__">__init__</a></li>
+    <li class="mono"><a href="#rss2neo.RssFeeder.Feeder.getFeeds">getFeeds</a></li>
+    <li class="mono"><a href="#rss2neo.RssFeeder.Feeder.getLinks">getLinks</a></li>
+    <li class="mono"><a href="#rss2neo.RssFeeder.Feeder.load_feeds">load_feeds</a></li>
+  </ul>
+
+        </li>
       </ul>
     </li>
+
     </ul>
   </div>
 
@@ -992,26 +1010,84 @@ table {
 
 
   <header id="section-intro">
-  <h1 class="title"><span class="name">rss2neo</span> module</h1>
+  <h1 class="title"><span class="name">rss2neo.RssFeeder</span> module</h1>
   
   
-  <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-rss2neo', this);">Show source &equiv;</a></p>
-  <div id="source-rss2neo" class="source">
-    <pre><code>import glob
+  <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-rss2neo.RssFeeder', this);">Show source &equiv;</a></p>
+  <div id="source-rss2neo.RssFeeder" class="source">
+    <pre><code>import feedparser
+import validators
 import sys
-from os import getcwd
-from os.path import dirname, basename, isfile
 
-sys.path.append(getcwd())
-
-import Grapher
-from rss2neo import RssFeeder
-import Parser
-import Recorder
+# * Created by Eliakah kakou
+# Feed.py
+# This class allows for more functionality in regards
+# to the dictionary entered in the constructor
 
 
-modules = glob.glob(dirname(__file__)+"/*.py")
-__all__ = [ basename(f)[:-3] for f in modules if isfile(f)]
+class Feed:
+    # constructor
+    def __init__(self, feed):
+        self.feed = feed
+
+    # This method returns a subset of the dictionary
+    def extract(self):
+        return {k: self.feed[k] for k in ('id', 'title', 'link', 'summary')}
+
+    def record_content(self):
+        return self.feed['link']
+
+# * Created by Eliakah kakou
+# RssFeeder.py
+# This class gets an RSS feed and manipulates
+# the data based on the url entered
+
+
+class Feeder:
+
+    # constructor
+    def __init__(self, file):
+        self.feeds = []
+        self.links = []
+        self.getLinks(file)
+        for i in range(len(self.links)):
+            self.feeds.extend(self.getFeeds(self.links[i]))
+
+    def getLinks(self, file):
+        input_file = open(file)
+        try:
+            for i, line in enumerate(input_file):
+                self.links.append(line)
+                #print line,
+        finally:
+            input_file.close()
+
+        # loadFeeds
+    def load_feeds(self):
+        return self.feeds
+
+    # change Url
+    def getFeeds(self, url):
+        feeds = []
+        flag = validators.url(url)
+        if flag:
+            feeds = feedparser.parse(url)
+        else:
+            sys.exit("Invalid Url: Please try again!")
+
+        list = feeds['entries']
+        for i in range(len(list)):
+            list[i] = Feed(list[i])
+            feeds = list
+
+        return feeds
+
+if __name__ == "__main__":
+    feeder = Feeder('links.txt')
+    feeds = feeder.load_feeds()
+
+    for i in range(len(feeds)):
+            print  feeds[i].extract()
 </code></pre>
   </div>
 
@@ -1020,44 +1096,291 @@ __all__ = [ basename(f)[:-3] for f in modules if isfile(f)]
   <section id="section-items">
 
 
-
-    <h2 class="section-title" id="header-submodules">Sub-modules</h2>
+    <h2 class="section-title" id="header-classes">Classes</h2>
+      
       <div class="item">
-      <p class="name"><a href="Grapher.m.html">rss2neo.Grapher</a></p>
+      <p id="rss2neo.RssFeeder.Feed" class="name">class <span class="ident">Feed</span></p>
       
   
-    <div class="desc"><p>This class contains the execution loop utilizing the Feeder, Parser and Recorder
-classes to interact with a neo4j DB. Each sub module provides different functionality
-and Grapher utilizes each of them to complete the task at hand.</p></div>
+  <div class="source_cont">
+  <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-rss2neo.RssFeeder.Feed', this);">Show source &equiv;</a></p>
+  <div id="source-rss2neo.RssFeeder.Feed" class="source">
+    <pre><code>class Feed:
+    # constructor
+    def __init__(self, feed):
+        self.feed = feed
 
+    # This method returns a subset of the dictionary
+    def extract(self):
+        return {k: self.feed[k] for k in ('id', 'title', 'link', 'summary')}
+
+    def record_content(self):
+        return self.feed['link']
+</code></pre>
+  </div>
+</div>
+
+
+      <div class="class">
+          <h3>Ancestors (in MRO)</h3>
+          <ul class="class_list">
+          <li><a href="#rss2neo.RssFeeder.Feed">Feed</a></li>
+          </ul>
+          <h3>Instance variables</h3>
+            <div class="item">
+            <p id="rss2neo.RssFeeder.Feed.feed" class="name">var <span class="ident">feed</span></p>
+            
+
+            
+  
+  <div class="source_cont">
+</div>
+
+            </div>
+          <h3>Methods</h3>
+            
+  <div class="item">
+    <div class="name def" id="rss2neo.RssFeeder.Feed.__init__">
+    <p>def <span class="ident">__init__</span>(</p><p>self, feed)</p>
+    </div>
+    
+
+    
+  
+  <div class="source_cont">
+  <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-rss2neo.RssFeeder.Feed.__init__', this);">Show source &equiv;</a></p>
+  <div id="source-rss2neo.RssFeeder.Feed.__init__" class="source">
+    <pre><code>def __init__(self, feed):
+    self.feed = feed
+</code></pre>
+  </div>
+</div>
+
+  </div>
+  
+            
+  <div class="item">
+    <div class="name def" id="rss2neo.RssFeeder.Feed.extract">
+    <p>def <span class="ident">extract</span>(</p><p>self)</p>
+    </div>
+    
+
+    
+  
+  <div class="source_cont">
+  <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-rss2neo.RssFeeder.Feed.extract', this);">Show source &equiv;</a></p>
+  <div id="source-rss2neo.RssFeeder.Feed.extract" class="source">
+    <pre><code>def extract(self):
+    return {k: self.feed[k] for k in ('id', 'title', 'link', 'summary')}
+</code></pre>
+  </div>
+</div>
+
+  </div>
+  
+            
+  <div class="item">
+    <div class="name def" id="rss2neo.RssFeeder.Feed.record_content">
+    <p>def <span class="ident">record_content</span>(</p><p>self)</p>
+    </div>
+    
+
+    
+  
+  <div class="source_cont">
+  <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-rss2neo.RssFeeder.Feed.record_content', this);">Show source &equiv;</a></p>
+  <div id="source-rss2neo.RssFeeder.Feed.record_content" class="source">
+    <pre><code>def record_content(self):
+    return self.feed['link']
+</code></pre>
+  </div>
+</div>
+
+  </div>
+  
       </div>
+      </div>
+      
       <div class="item">
-      <p class="name"><a href="Parser.m.html">rss2neo.Parser</a></p>
+      <p id="rss2neo.RssFeeder.Feeder" class="name">class <span class="ident">Feeder</span></p>
       
   
+  <div class="source_cont">
+  <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-rss2neo.RssFeeder.Feeder', this);">Show source &equiv;</a></p>
+  <div id="source-rss2neo.RssFeeder.Feeder" class="source">
+    <pre><code>class Feeder:
 
-      </div>
-      <div class="item">
-      <p class="name"><a href="Recorder.m.html">rss2neo.Recorder</a></p>
-      
+    # constructor
+    def __init__(self, file):
+        self.feeds = []
+        self.links = []
+        self.getLinks(file)
+        for i in range(len(self.links)):
+            self.feeds.extend(self.getFeeds(self.links[i]))
+
+    def getLinks(self, file):
+        input_file = open(file)
+        try:
+            for i, line in enumerate(input_file):
+                self.links.append(line)
+                #print line,
+        finally:
+            input_file.close()
+
+        # loadFeeds
+    def load_feeds(self):
+        return self.feeds
+
+    # change Url
+    def getFeeds(self, url):
+        feeds = []
+        flag = validators.url(url)
+        if flag:
+            feeds = feedparser.parse(url)
+        else:
+            sys.exit("Invalid Url: Please try again!")
+
+        list = feeds['entries']
+        for i in range(len(list)):
+            list[i] = Feed(list[i])
+            feeds = list
+
+        return feeds
+</code></pre>
+  </div>
+</div>
+
+
+      <div class="class">
+          <h3>Ancestors (in MRO)</h3>
+          <ul class="class_list">
+          <li><a href="#rss2neo.RssFeeder.Feeder">Feeder</a></li>
+          </ul>
+          <h3>Instance variables</h3>
+            <div class="item">
+            <p id="rss2neo.RssFeeder.Feeder.feeds" class="name">var <span class="ident">feeds</span></p>
+            
+
+            
   
-    <div class="desc"><p>This module is used to interact with a neo4j DB. It records information given to it
-into the DB, hence the name. It operates as a Class and uses py2neo to turn information
-into graph objects.</p></div>
+  <div class="source_cont">
+</div>
 
-      </div>
-      <div class="item">
-      <p class="name"><a href="RssFeeder.m.html">rss2neo.RssFeeder</a></p>
-      
+            </div>
+            <div class="item">
+            <p id="rss2neo.RssFeeder.Feeder.links" class="name">var <span class="ident">links</span></p>
+            
+
+            
   
+  <div class="source_cont">
+</div>
 
-      </div>
-      <div class="item">
-      <p class="name"><a href="markup_parser.m.html">rss2neo.markup_parser</a></p>
-      
+            </div>
+          <h3>Methods</h3>
+            
+  <div class="item">
+    <div class="name def" id="rss2neo.RssFeeder.Feeder.__init__">
+    <p>def <span class="ident">__init__</span>(</p><p>self, file)</p>
+    </div>
+    
+
+    
   
+  <div class="source_cont">
+  <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-rss2neo.RssFeeder.Feeder.__init__', this);">Show source &equiv;</a></p>
+  <div id="source-rss2neo.RssFeeder.Feeder.__init__" class="source">
+    <pre><code>def __init__(self, file):
+    self.feeds = []
+    self.links = []
+    self.getLinks(file)
+    for i in range(len(self.links)):
+        self.feeds.extend(self.getFeeds(self.links[i]))
+</code></pre>
+  </div>
+</div>
 
+  </div>
+  
+            
+  <div class="item">
+    <div class="name def" id="rss2neo.RssFeeder.Feeder.getFeeds">
+    <p>def <span class="ident">getFeeds</span>(</p><p>self, url)</p>
+    </div>
+    
+
+    
+  
+  <div class="source_cont">
+  <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-rss2neo.RssFeeder.Feeder.getFeeds', this);">Show source &equiv;</a></p>
+  <div id="source-rss2neo.RssFeeder.Feeder.getFeeds" class="source">
+    <pre><code>def getFeeds(self, url):
+    feeds = []
+    flag = validators.url(url)
+    if flag:
+        feeds = feedparser.parse(url)
+    else:
+        sys.exit("Invalid Url: Please try again!")
+    list = feeds['entries']
+    for i in range(len(list)):
+        list[i] = Feed(list[i])
+        feeds = list
+    return feeds
+</code></pre>
+  </div>
+</div>
+
+  </div>
+  
+            
+  <div class="item">
+    <div class="name def" id="rss2neo.RssFeeder.Feeder.getLinks">
+    <p>def <span class="ident">getLinks</span>(</p><p>self, file)</p>
+    </div>
+    
+
+    
+  
+  <div class="source_cont">
+  <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-rss2neo.RssFeeder.Feeder.getLinks', this);">Show source &equiv;</a></p>
+  <div id="source-rss2neo.RssFeeder.Feeder.getLinks" class="source">
+    <pre><code>def getLinks(self, file):
+    input_file = open(file)
+    try:
+        for i, line in enumerate(input_file):
+            self.links.append(line)
+            #print line,
+    finally:
+        input_file.close()
+</code></pre>
+  </div>
+</div>
+
+  </div>
+  
+            
+  <div class="item">
+    <div class="name def" id="rss2neo.RssFeeder.Feeder.load_feeds">
+    <p>def <span class="ident">load_feeds</span>(</p><p>self)</p>
+    </div>
+    
+
+    
+  
+  <div class="source_cont">
+  <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-rss2neo.RssFeeder.Feeder.load_feeds', this);">Show source &equiv;</a></p>
+  <div id="source-rss2neo.RssFeeder.Feeder.load_feeds" class="source">
+    <pre><code>def load_feeds(self):
+    return self.feeds
+</code></pre>
+  </div>
+</div>
+
+  </div>
+  
       </div>
+      </div>
+
   </section>
 
     </article>

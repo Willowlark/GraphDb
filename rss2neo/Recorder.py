@@ -1,3 +1,9 @@
+"""
+This module is used to interact with a neo4j DB. It records information given to it
+into the DB, hence the name. It operates as a Class and uses py2neo to turn information
+into graph objects. 
+"""
+
 from py2neo import Graph
 from py2neo import Node
 from py2neo import Relationship
@@ -7,7 +13,7 @@ class Recorder:
     """
     `Author`: Bill Clark
 
-    A module to handle the neo4j interactions in RssGrapher. Methods are specific to
+    A module to handle the neo4j interactions in Grapher. Methods are specific to
     that class, but are basic enough to be reused easily. Most return subgraphs.
 
     `graph`: The global for the graph to connect to.
@@ -91,7 +97,7 @@ class Recorder:
         doesn't exist or retrieves it if it does not. This should be used over the
         individual add and fetch operations.
 
-        `topic_candidates`: List of topic strings to be added or retieved. The value of the string
+        `topic_candidates`: List of topic strings to be added or retrieved. The value of the string
         is the name property of the node.
 
         `return`: a subgraph of the fetched and added nodes.
@@ -108,8 +114,8 @@ class Recorder:
         """
         `Author`: Bill Clark
 
-        Adds a node in the same manner as add topic. This does not accomodate lists.
-        This is used for adding records, made seperate so Topics can be expanded on.
+        Adds a node in the same manner as add topic. This does not accommodate lists.
+        This is used for adding records, made separate so Topics can be expanded on.
         Will not add to the graph if confirm mode is off, only return the created node.
 
         `data`: The data to store in the content field of the node.
@@ -122,6 +128,16 @@ class Recorder:
         return n
 
     def has_record(self, data):
+        """
+        `Author`: Bill Clark
+        
+        Checks if a record with content field data is in the database. If it is found,
+        we return True. If it's not found, we return false. 
+        
+        `data`: The value in the content field to check against.
+        
+        `return`: Boolean True or False
+        """
         if self.graph.find_one("Record", property_key="content", property_value=data):
             return True
         else: return False
@@ -157,7 +173,7 @@ class Recorder:
         listing = []
         for node in topic_subgraph.nodes():
             listing.append(Relationship(record_node, 'Related', node, weight=node['strength']))
-            del node['strength']
+            del node['strength']  # We use the node to carry the weight, not store it.
         return self._subgraphify(listing) | record_node
 
     def push(self, subgraph):
@@ -182,19 +198,3 @@ class Recorder:
 if __name__ == "__main__":
     rec = Recorder()
     rec.initialize('http://localhost:7474/db/data/')
-
-    import Parser
-    import Feeder
-
-    feeder = Feeder.Feeder('links.txt')
-    feeds = feeder.load_feeds()
-
-    for i in range(len(feeds)):
-            print  feeds[i].extract()
-
-    ctopics = Parser.get_unstructured_topic(feeds[0].extract())
-    tops = rec.get_or_add_topics(ctopics)
-    print tops
-    recs = Node("Record", content="cats")
-
-    rec.relate_then_push(tops, recs)

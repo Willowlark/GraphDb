@@ -3,8 +3,9 @@
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
 
-    <title>rss2neo.RssGrapher API documentation</title>
-    <meta name="description" content="" />
+    <title>rss2neo.Grapher API documentation</title>
+    <meta name="description" content="This class contains the execution loop utilizing the Feeder, Parser and Recorder
+classes to interact..." />
 
   <link href='http://fonts.googleapis.com/css?family=Source+Sans+Pro:400,300' rel='stylesheet' type='text/css'>
   
@@ -973,7 +974,7 @@ table {
     <li class="set"><h3><a href="#header-functions">Functions</a></h3>
       
   <ul>
-    <li class="mono"><a href="#rss2neo.RssGrapher.execute">execute</a></li>
+    <li class="mono"><a href="#rss2neo.Grapher.post_60">post_60</a></li>
   </ul>
 
     </li>
@@ -990,24 +991,51 @@ table {
 
 
   <header id="section-intro">
-  <h1 class="title"><span class="name">rss2neo.RssGrapher</span> module</h1>
+  <h1 class="title"><span class="name">rss2neo.Grapher</span> module</h1>
+  <p>This class contains the execution loop utilizing the Feeder, Parser and Recorder
+classes to interact with a neo4j DB. Each sub module provides different functionality
+and Grapher utilizes each of them to complete the task at hand.</p>
   
-  
-  <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-rss2neo.RssGrapher', this);">Show source &equiv;</a></p>
-  <div id="source-rss2neo.RssGrapher" class="source">
-    <pre><code>import sys
+  <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-rss2neo.Grapher', this);">Show source &equiv;</a></p>
+  <div id="source-rss2neo.Grapher" class="source">
+    <pre><code>"""This class contains the execution loop utilizing the Feeder, Parser and Recorder
+classes to interact with a neo4j DB. Each sub module provides different functionality
+and Grapher utilizes each of them to complete the task at hand."""
+
+import sys
 from time import sleep
 
-import Feeder
 import Parser
 from Recorder import Recorder
+from rss2neo import RssFeeder
 
 
-def execute(graphAddress, path):
+
+def post_60(graphAddress, path):
+    """
+    `Author`: Bill Clark
+    
+    This method contains the object initializations and the control loop of
+    a Grapher utility. It will declare a Recorder and Feeder using the parameters
+    it is provided and setup a Parser. The loop will then scan every feed the Feeder
+    provides. If the feed is NOT in the database, we parse it's topics and add/extract
+    them to/from the DB. We then add that feed as a new record in the graph, linked
+    to the topics we derived. If the feed already exists as a record, it's timestamp
+    is checked. If there's no updated to the timestamp, the feed is skipped.
+    This loop executes for all feeds provided, then sleeps 60 seconds before restarting.
+    It is intended to run infinitely. 
+    
+    Executing the module rather than importing it will take the parameters from the
+    command line and run this method. 
+    
+    `graphAddress`: The url of the graphDB the Grapher will work on.
+    
+    `path`: The path to the file to be used by the feeder. 
+    """
 
     recorder = Recorder()
     recorder.initialize(graphAddress)
-    feeder = Feeder.Feeder(path)
+    feeder = RssFeeder.Feeder(path)
 
     while True:
 
@@ -1029,20 +1057,11 @@ def execute(graphAddress, path):
 
             recorder.relate_then_push(topics_graph, rnode)
 
-        print 'Sleeping for 60s'
+        print 'Finished; Sleeping for 60s'
         sleep(60)
 
-def _timer(method, args):
-    import time
-
-    start = time.time()
-    method(*args)
-    print 'Time for single loop:', time.time() - start
-
-
 if __name__ == "__main__":
-    execute(sys.argv[1], 'links.txt')
-    #_timer(execute, [sys.argv[1], 'links.txt'])
+    post_60(sys.argv[1], sys.argv[2])
 </code></pre>
   </div>
 
@@ -1053,21 +1072,55 @@ if __name__ == "__main__":
     <h2 class="section-title" id="header-functions">Functions</h2>
       
   <div class="item">
-    <div class="name def" id="rss2neo.RssGrapher.execute">
-    <p>def <span class="ident">execute</span>(</p><p>graphAddress, path)</p>
+    <div class="name def" id="rss2neo.Grapher.post_60">
+    <p>def <span class="ident">post_60</span>(</p><p>graphAddress, path)</p>
     </div>
     
 
     
   
+    <div class="desc"><p><code>Author</code>: Bill Clark</p>
+<p>This method contains the object initializations and the control loop of
+a Grapher utility. It will declare a Recorder and Feeder using the parameters
+it is provided and setup a Parser. The loop will then scan every feed the Feeder
+provides. If the feed is NOT in the database, we parse it's topics and add/extract
+them to/from the DB. We then add that feed as a new record in the graph, linked
+to the topics we derived. If the feed already exists as a record, it's timestamp
+is checked. If there's no updated to the timestamp, the feed is skipped.
+This loop executes for all feeds provided, then sleeps 60 seconds before restarting.
+It is intended to run infinitely. </p>
+<p>Executing the module rather than importing it will take the parameters from the
+command line and run this method. </p>
+<p><code>graphAddress</code>: The url of the graphDB the Grapher will work on.</p>
+<p><code>path</code>: The path to the file to be used by the feeder.</p></div>
   <div class="source_cont">
-  <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-rss2neo.RssGrapher.execute', this);">Show source &equiv;</a></p>
-  <div id="source-rss2neo.RssGrapher.execute" class="source">
-    <pre><code>def execute(graphAddress, path):
+  <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-rss2neo.Grapher.post_60', this);">Show source &equiv;</a></p>
+  <div id="source-rss2neo.Grapher.post_60" class="source">
+    <pre><code>def post_60(graphAddress, path):
+    """
+    `Author`: Bill Clark
+    
+    This method contains the object initializations and the control loop of
+    a Grapher utility. It will declare a Recorder and Feeder using the parameters
+    it is provided and setup a Parser. The loop will then scan every feed the Feeder
+    provides. If the feed is NOT in the database, we parse it's topics and add/extract
+    them to/from the DB. We then add that feed as a new record in the graph, linked
+    to the topics we derived. If the feed already exists as a record, it's timestamp
+    is checked. If there's no updated to the timestamp, the feed is skipped.
+    This loop executes for all feeds provided, then sleeps 60 seconds before restarting.
+    It is intended to run infinitely. 
+    
+    Executing the module rather than importing it will take the parameters from the
+    command line and run this method. 
+    
+    `graphAddress`: The url of the graphDB the Grapher will work on.
+    
+    `path`: The path to the file to be used by the feeder. 
+    """
 
     recorder = Recorder()
     recorder.initialize(graphAddress)
-    feeder = Feeder.Feeder(path)
+    feeder = RssFeeder.Feeder(path)
 
     while True:
 
@@ -1089,7 +1142,7 @@ if __name__ == "__main__":
 
             recorder.relate_then_push(topics_graph, rnode)
 
-        print 'Sleeping for 60s'
+        print 'Finished; Sleeping for 60s'
         sleep(60)
 </code></pre>
   </div>

@@ -4,7 +4,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
 
     <title>rss2neo.Recorder API documentation</title>
-    <meta name="description" content="" />
+    <meta name="description" content="This module is used to interact with a neo4j DB. It records information given to it
+into the DB, hen..." />
 
   <link href='http://fonts.googleapis.com/css?family=Source+Sans+Pro:400,300' rel='stylesheet' type='text/css'>
   
@@ -1003,11 +1004,19 @@ table {
 
   <header id="section-intro">
   <h1 class="title"><span class="name">rss2neo.Recorder</span> module</h1>
-  
+  <p>This module is used to interact with a neo4j DB. It records information given to it
+into the DB, hence the name. It operates as a Class and uses py2neo to turn information
+into graph objects.</p>
   
   <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-rss2neo.Recorder', this);">Show source &equiv;</a></p>
   <div id="source-rss2neo.Recorder" class="source">
-    <pre><code>from py2neo import Graph
+    <pre><code>"""
+This module is used to interact with a neo4j DB. It records information given to it
+into the DB, hence the name. It operates as a Class and uses py2neo to turn information
+into graph objects. 
+"""
+
+from py2neo import Graph
 from py2neo import Node
 from py2neo import Relationship
 
@@ -1016,7 +1025,7 @@ class Recorder:
     """
     `Author`: Bill Clark
 
-    A module to handle the neo4j interactions in RssGrapher. Methods are specific to
+    A module to handle the neo4j interactions in Grapher. Methods are specific to
     that class, but are basic enough to be reused easily. Most return subgraphs.
 
     `graph`: The global for the graph to connect to.
@@ -1100,7 +1109,7 @@ class Recorder:
         doesn't exist or retrieves it if it does not. This should be used over the
         individual add and fetch operations.
 
-        `topic_candidates`: List of topic strings to be added or retieved. The value of the string
+        `topic_candidates`: List of topic strings to be added or retrieved. The value of the string
         is the name property of the node.
 
         `return`: a subgraph of the fetched and added nodes.
@@ -1117,8 +1126,8 @@ class Recorder:
         """
         `Author`: Bill Clark
 
-        Adds a node in the same manner as add topic. This does not accomodate lists.
-        This is used for adding records, made seperate so Topics can be expanded on.
+        Adds a node in the same manner as add topic. This does not accommodate lists.
+        This is used for adding records, made separate so Topics can be expanded on.
         Will not add to the graph if confirm mode is off, only return the created node.
 
         `data`: The data to store in the content field of the node.
@@ -1131,6 +1140,16 @@ class Recorder:
         return n
 
     def has_record(self, data):
+        """
+        `Author`: Bill Clark
+        
+        Checks if a record with content field data is in the database. If it is found,
+        we return True. If it's not found, we return false. 
+        
+        `data`: The value in the content field to check against.
+        
+        `return`: Boolean True or False
+        """
         if self.graph.find_one("Record", property_key="content", property_value=data):
             return True
         else: return False
@@ -1166,7 +1185,7 @@ class Recorder:
         listing = []
         for node in topic_subgraph.nodes():
             listing.append(Relationship(record_node, 'Related', node, weight=node['strength']))
-            del node['strength']
+            del node['strength']  # We use the node to carry the weight, not store it.
         return self._subgraphify(listing) | record_node
 
     def push(self, subgraph):
@@ -1191,22 +1210,6 @@ class Recorder:
 if __name__ == "__main__":
     rec = Recorder()
     rec.initialize('http://localhost:7474/db/data/')
-
-    import Parser
-    import Feeder
-
-    feeder = Feeder.Feeder('links.txt')
-    feeds = feeder.load_feeds()
-
-    for i in range(len(feeds)):
-            print  feeds[i].extract()
-
-    ctopics = Parser.get_unstructured_topic(feeds[0].extract())
-    tops = rec.get_or_add_topics(ctopics)
-    print tops
-    recs = Node("Record", content="cats")
-
-    rec.relate_then_push(tops, recs)
 </code></pre>
   </div>
 
@@ -1222,7 +1225,7 @@ if __name__ == "__main__":
       
   
     <div class="desc"><p><code>Author</code>: Bill Clark</p>
-<p>A module to handle the neo4j interactions in RssGrapher. Methods are specific to
+<p>A module to handle the neo4j interactions in Grapher. Methods are specific to
 that class, but are basic enough to be reused easily. Most return subgraphs.</p>
 <p><code>graph</code>: The global for the graph to connect to.</p>
 <p><code>immediate_mode</code>: A flag that can be set to 1) prevent the adding methods from adding
@@ -1235,7 +1238,7 @@ input for push operation. For safety mostly, unlikely needed.</p></div>
     """
     `Author`: Bill Clark
 
-    A module to handle the neo4j interactions in RssGrapher. Methods are specific to
+    A module to handle the neo4j interactions in Grapher. Methods are specific to
     that class, but are basic enough to be reused easily. Most return subgraphs.
 
     `graph`: The global for the graph to connect to.
@@ -1319,7 +1322,7 @@ input for push operation. For safety mostly, unlikely needed.</p></div>
         doesn't exist or retrieves it if it does not. This should be used over the
         individual add and fetch operations.
 
-        `topic_candidates`: List of topic strings to be added or retieved. The value of the string
+        `topic_candidates`: List of topic strings to be added or retrieved. The value of the string
         is the name property of the node.
 
         `return`: a subgraph of the fetched and added nodes.
@@ -1336,8 +1339,8 @@ input for push operation. For safety mostly, unlikely needed.</p></div>
         """
         `Author`: Bill Clark
 
-        Adds a node in the same manner as add topic. This does not accomodate lists.
-        This is used for adding records, made seperate so Topics can be expanded on.
+        Adds a node in the same manner as add topic. This does not accommodate lists.
+        This is used for adding records, made separate so Topics can be expanded on.
         Will not add to the graph if confirm mode is off, only return the created node.
 
         `data`: The data to store in the content field of the node.
@@ -1350,6 +1353,16 @@ input for push operation. For safety mostly, unlikely needed.</p></div>
         return n
 
     def has_record(self, data):
+        """
+        `Author`: Bill Clark
+        
+        Checks if a record with content field data is in the database. If it is found,
+        we return True. If it's not found, we return false. 
+        
+        `data`: The value in the content field to check against.
+        
+        `return`: Boolean True or False
+        """
         if self.graph.find_one("Record", property_key="content", property_value=data):
             return True
         else: return False
@@ -1385,7 +1398,7 @@ input for push operation. For safety mostly, unlikely needed.</p></div>
         listing = []
         for node in topic_subgraph.nodes():
             listing.append(Relationship(record_node, 'Related', node, weight=node['strength']))
-            del node['strength']
+            del node['strength']  # We use the node to carry the weight, not store it.
         return self._subgraphify(listing) | record_node
 
     def push(self, subgraph):
@@ -1458,8 +1471,8 @@ input for push operation. For safety mostly, unlikely needed.</p></div>
     
   
     <div class="desc"><p><code>Author</code>: Bill Clark</p>
-<p>Adds a node in the same manner as add topic. This does not accomodate lists.
-This is used for adding records, made seperate so Topics can be expanded on.
+<p>Adds a node in the same manner as add topic. This does not accommodate lists.
+This is used for adding records, made separate so Topics can be expanded on.
 Will not add to the graph if confirm mode is off, only return the created node.</p>
 <p><code>data</code>: The data to store in the content field of the node.</p>
 <p><code>return</code>: the node created.</p></div>
@@ -1469,8 +1482,8 @@ Will not add to the graph if confirm mode is off, only return the created node.<
     <pre><code>def add_record(self, data):
     """
     `Author`: Bill Clark
-    Adds a node in the same manner as add topic. This does not accomodate lists.
-    This is used for adding records, made seperate so Topics can be expanded on.
+    Adds a node in the same manner as add topic. This does not accommodate lists.
+    This is used for adding records, made separate so Topics can be expanded on.
     Will not add to the graph if confirm mode is off, only return the created node.
     `data`: The data to store in the content field of the node.
     `return`: the node created.
@@ -1498,7 +1511,7 @@ Will not add to the graph if confirm mode is off, only return the created node.<
 <p>Control method. This method takes each topic given and either creates it if it
 doesn't exist or retrieves it if it does not. This should be used over the
 individual add and fetch operations.</p>
-<p><code>topic_candidates</code>: List of topic strings to be added or retieved. The value of the string
+<p><code>topic_candidates</code>: List of topic strings to be added or retrieved. The value of the string
 is the name property of the node.</p>
 <p><code>return</code>: a subgraph of the fetched and added nodes.</p></div>
   <div class="source_cont">
@@ -1510,7 +1523,7 @@ is the name property of the node.</p>
     Control method. This method takes each topic given and either creates it if it
     doesn't exist or retrieves it if it does not. This should be used over the
     individual add and fetch operations.
-    `topic_candidates`: List of topic strings to be added or retieved. The value of the string
+    `topic_candidates`: List of topic strings to be added or retrieved. The value of the string
     is the name property of the node.
     `return`: a subgraph of the fetched and added nodes.
     """
@@ -1536,10 +1549,25 @@ is the name property of the node.</p>
 
     
   
+    <div class="desc"><p><code>Author</code>: Bill Clark</p>
+<p>Checks if a record with content field data is in the database. If it is found,
+we return True. If it's not found, we return false. </p>
+<p><code>data</code>: The value in the content field to check against.</p>
+<p><code>return</code>: Boolean True or False</p></div>
   <div class="source_cont">
   <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-rss2neo.Recorder.Recorder.has_record', this);">Show source &equiv;</a></p>
   <div id="source-rss2neo.Recorder.Recorder.has_record" class="source">
     <pre><code>def has_record(self, data):
+    """
+    `Author`: Bill Clark
+    
+    Checks if a record with content field data is in the database. If it is found,
+    we return True. If it's not found, we return false. 
+    
+    `data`: The value in the content field to check against.
+    
+    `return`: Boolean True or False
+    """
     if self.graph.find_one("Record", property_key="content", property_value=data):
         return True
     else: return False
@@ -1648,7 +1676,7 @@ relationships.</p></div>
     listing = []
     for node in topic_subgraph.nodes():
         listing.append(Relationship(record_node, 'Related', node, weight=node['strength']))
-        del node['strength']
+        del node['strength']  # We use the node to carry the weight, not store it.
     return self._subgraphify(listing) | record_node
 </code></pre>
   </div>

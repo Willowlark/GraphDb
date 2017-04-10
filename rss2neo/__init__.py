@@ -1,12 +1,12 @@
-from os.path import dirname, basename, isfile
 import glob
-
 import sys
 from os import getcwd
+from os.path import dirname, basename, isfile
+
 sys.path.append(getcwd())
 
-import RssGrapher
-import Feeder
+import Grapher
+from rss2neo import RssFeeder
 import Parser
 import Recorder
 

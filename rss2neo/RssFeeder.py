@@ -21,7 +21,7 @@ class Feed:
         return self.feed['link']
 
 # * Created by Eliakah kakou
-# Feeder.py
+# RssFeeder.py
 # This class gets an RSS feed and manipulates
 # the data based on the url entered
 
