@@ -1,0 +1,2382 @@
+<!doctype html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
+
+    <title>rss2neo.markup_parser API documentation</title>
+    <meta name="description" content="" />
+
+  <link href='http://fonts.googleapis.com/css?family=Source+Sans+Pro:400,300' rel='stylesheet' type='text/css'>
+  
+  <style type="text/css">
+  
+* {
+  box-sizing: border-box;
+}
+/*! normalize.css v1.1.1 | MIT License | git.io/normalize */
+
+/* ==========================================================================
+   HTML5 display definitions
+   ========================================================================== */
+
+/**
+ * Correct `block` display not defined in IE 6/7/8/9 and Firefox 3.
+ */
+
+article,
+aside,
+details,
+figcaption,
+figure,
+footer,
+header,
+hgroup,
+main,
+nav,
+section,
+summary {
+    display: block;
+}
+
+/**
+ * Correct `inline-block` display not defined in IE 6/7/8/9 and Firefox 3.
+ */
+
+audio,
+canvas,
+video {
+    display: inline-block;
+    *display: inline;
+    *zoom: 1;
+}
+
+/**
+ * Prevent modern browsers from displaying `audio` without controls.
+ * Remove excess height in iOS 5 devices.
+ */
+
+audio:not([controls]) {
+    display: none;
+    height: 0;
+}
+
+/**
+ * Address styling not present in IE 7/8/9, Firefox 3, and Safari 4.
+ * Known issue: no IE 6 support.
+ */
+
+[hidden] {
+    display: none;
+}
+
+/* ==========================================================================
+   Base
+   ========================================================================== */
+
+/**
+ * 1. Prevent system color scheme's background color being used in Firefox, IE,
+ *    and Opera.
+ * 2. Prevent system color scheme's text color being used in Firefox, IE, and
+ *    Opera.
+ * 3. Correct text resizing oddly in IE 6/7 when body `font-size` is set using
+ *    `em` units.
+ * 4. Prevent iOS text size adjust after orientation change, without disabling
+ *    user zoom.
+ */
+
+html {
+    background: #fff; /* 1 */
+    color: #000; /* 2 */
+    font-size: 100%; /* 3 */
+    -webkit-text-size-adjust: 100%; /* 4 */
+    -ms-text-size-adjust: 100%; /* 4 */
+}
+
+/**
+ * Address `font-family` inconsistency between `textarea` and other form
+ * elements.
+ */
+
+html,
+button,
+input,
+select,
+textarea {
+    font-family: sans-serif;
+}
+
+/**
+ * Address margins handled incorrectly in IE 6/7.
+ */
+
+body {
+    margin: 0;
+}
+
+/* ==========================================================================
+   Links
+   ========================================================================== */
+
+/**
+ * Address `outline` inconsistency between Chrome and other browsers.
+ */
+
+a:focus {
+    outline: thin dotted;
+}
+
+/**
+ * Improve readability when focused and also mouse hovered in all browsers.
+ */
+
+a:active,
+a:hover {
+    outline: 0;
+}
+
+/* ==========================================================================
+   Typography
+   ========================================================================== */
+
+/**
+ * Address font sizes and margins set differently in IE 6/7.
+ * Address font sizes within `section` and `article` in Firefox 4+, Safari 5,
+ * and Chrome.
+ */
+
+h1 {
+    font-size: 2em;
+    margin: 0.67em 0;
+}
+
+h2 {
+    font-size: 1.5em;
+    margin: 0.83em 0;
+}
+
+h3 {
+    font-size: 1.17em;
+    margin: 1em 0;
+}
+
+h4 {
+    font-size: 1em;
+    margin: 1.33em 0;
+}
+
+h5 {
+    font-size: 0.83em;
+    margin: 1.67em 0;
+}
+
+h6 {
+    font-size: 0.67em;
+    margin: 2.33em 0;
+}
+
+/**
+ * Address styling not present in IE 7/8/9, Safari 5, and Chrome.
+ */
+
+abbr[title] {
+    border-bottom: 1px dotted;
+}
+
+/**
+ * Address style set to `bolder` in Firefox 3+, Safari 4/5, and Chrome.
+ */
+
+b,
+strong {
+    font-weight: bold;
+}
+
+blockquote {
+    margin: 1em 40px;
+}
+
+/**
+ * Address styling not present in Safari 5 and Chrome.
+ */
+
+dfn {
+    font-style: italic;
+}
+
+/**
+ * Address differences between Firefox and other browsers.
+ * Known issue: no IE 6/7 normalization.
+ */
+
+hr {
+    -moz-box-sizing: content-box;
+    box-sizing: content-box;
+    height: 0;
+}
+
+/**
+ * Address styling not present in IE 6/7/8/9.
+ */
+
+mark {
+    background: #ff0;
+    color: #000;
+}
+
+/**
+ * Address margins set differently in IE 6/7.
+ */
+
+p,
+pre {
+    margin: 1em 0;
+}
+
+/**
+ * Correct font family set oddly in IE 6, Safari 4/5, and Chrome.
+ */
+
+code,
+kbd,
+pre,
+samp {
+    font-family: monospace, serif;
+    _font-family: 'courier new', monospace;
+    font-size: 1em;
+}
+
+/**
+ * Improve readability of pre-formatted text in all browsers.
+ */
+
+pre {
+    white-space: pre;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+}
+
+/**
+ * Address CSS quotes not supported in IE 6/7.
+ */
+
+q {
+    quotes: none;
+}
+
+/**
+ * Address `quotes` property not supported in Safari 4.
+ */
+
+q:before,
+q:after {
+    content: '';
+    content: none;
+}
+
+/**
+ * Address inconsistent and variable font size in all browsers.
+ */
+
+small {
+    font-size: 80%;
+}
+
+/**
+ * Prevent `sub` and `sup` affecting `line-height` in all browsers.
+ */
+
+sub,
+sup {
+    font-size: 75%;
+    line-height: 0;
+    position: relative;
+    vertical-align: baseline;
+}
+
+sup {
+    top: -0.5em;
+}
+
+sub {
+    bottom: -0.25em;
+}
+
+/* ==========================================================================
+   Lists
+   ========================================================================== */
+
+/**
+ * Address margins set differently in IE 6/7.
+ */
+
+dl,
+menu,
+ol,
+ul {
+    margin: 1em 0;
+}
+
+dd {
+    margin: 0 0 0 40px;
+}
+
+/**
+ * Address paddings set differently in IE 6/7.
+ */
+
+menu,
+ol,
+ul {
+    padding: 0 0 0 40px;
+}
+
+/**
+ * Correct list images handled incorrectly in IE 7.
+ */
+
+nav ul,
+nav ol {
+    list-style: none;
+    list-style-image: none;
+}
+
+/* ==========================================================================
+   Embedded content
+   ========================================================================== */
+
+/**
+ * 1. Remove border when inside `a` element in IE 6/7/8/9 and Firefox 3.
+ * 2. Improve image quality when scaled in IE 7.
+ */
+
+img {
+    border: 0; /* 1 */
+    -ms-interpolation-mode: bicubic; /* 2 */
+}
+
+/**
+ * Correct overflow displayed oddly in IE 9.
+ */
+
+svg:not(:root) {
+    overflow: hidden;
+}
+
+/* ==========================================================================
+   Figures
+   ========================================================================== */
+
+/**
+ * Address margin not present in IE 6/7/8/9, Safari 5, and Opera 11.
+ */
+
+figure {
+    margin: 0;
+}
+
+/* ==========================================================================
+   Forms
+   ========================================================================== */
+
+/**
+ * Correct margin displayed oddly in IE 6/7.
+ */
+
+form {
+    margin: 0;
+}
+
+/**
+ * Define consistent border, margin, and padding.
+ */
+
+fieldset {
+    border: 1px solid #c0c0c0;
+    margin: 0 2px;
+    padding: 0.35em 0.625em 0.75em;
+}
+
+/**
+ * 1. Correct color not being inherited in IE 6/7/8/9.
+ * 2. Correct text not wrapping in Firefox 3.
+ * 3. Correct alignment displayed oddly in IE 6/7.
+ */
+
+legend {
+    border: 0; /* 1 */
+    padding: 0;
+    white-space: normal; /* 2 */
+    *margin-left: -7px; /* 3 */
+}
+
+/**
+ * 1. Correct font size not being inherited in all browsers.
+ * 2. Address margins set differently in IE 6/7, Firefox 3+, Safari 5,
+ *    and Chrome.
+ * 3. Improve appearance and consistency in all browsers.
+ */
+
+button,
+input,
+select,
+textarea {
+    font-size: 100%; /* 1 */
+    margin: 0; /* 2 */
+    vertical-align: baseline; /* 3 */
+    *vertical-align: middle; /* 3 */
+}
+
+/**
+ * Address Firefox 3+ setting `line-height` on `input` using `!important` in
+ * the UA stylesheet.
+ */
+
+button,
+input {
+    line-height: normal;
+}
+
+/**
+ * Address inconsistent `text-transform` inheritance for `button` and `select`.
+ * All other form control elements do not inherit `text-transform` values.
+ * Correct `button` style inheritance in Chrome, Safari 5+, and IE 6+.
+ * Correct `select` style inheritance in Firefox 4+ and Opera.
+ */
+
+button,
+select {
+    text-transform: none;
+}
+
+/**
+ * 1. Avoid the WebKit bug in Android 4.0.* where (2) destroys native `audio`
+ *    and `video` controls.
+ * 2. Correct inability to style clickable `input` types in iOS.
+ * 3. Improve usability and consistency of cursor style between image-type
+ *    `input` and others.
+ * 4. Remove inner spacing in IE 7 without affecting normal text inputs.
+ *    Known issue: inner spacing remains in IE 6.
+ */
+
+button,
+html input[type="button"], /* 1 */
+input[type="reset"],
+input[type="submit"] {
+    -webkit-appearance: button; /* 2 */
+    cursor: pointer; /* 3 */
+    *overflow: visible;  /* 4 */
+}
+
+/**
+ * Re-set default cursor for disabled elements.
+ */
+
+button[disabled],
+html input[disabled] {
+    cursor: default;
+}
+
+/**
+ * 1. Address box sizing set to content-box in IE 8/9.
+ * 2. Remove excess padding in IE 8/9.
+ * 3. Remove excess padding in IE 7.
+ *    Known issue: excess padding remains in IE 6.
+ */
+
+input[type="checkbox"],
+input[type="radio"] {
+    box-sizing: border-box; /* 1 */
+    padding: 0; /* 2 */
+    *height: 13px; /* 3 */
+    *width: 13px; /* 3 */
+}
+
+/**
+ * 1. Address `appearance` set to `searchfield` in Safari 5 and Chrome.
+ * 2. Address `box-sizing` set to `border-box` in Safari 5 and Chrome
+ *    (include `-moz` to future-proof).
+ */
+
+input[type="search"] {
+    -webkit-appearance: textfield; /* 1 */
+    -moz-box-sizing: content-box;
+    -webkit-box-sizing: content-box; /* 2 */
+    box-sizing: content-box;
+}
+
+/**
+ * Remove inner padding and search cancel button in Safari 5 and Chrome
+ * on OS X.
+ */
+
+input[type="search"]::-webkit-search-cancel-button,
+input[type="search"]::-webkit-search-decoration {
+    -webkit-appearance: none;
+}
+
+/**
+ * Remove inner padding and border in Firefox 3+.
+ */
+
+button::-moz-focus-inner,
+input::-moz-focus-inner {
+    border: 0;
+    padding: 0;
+}
+
+/**
+ * 1. Remove default vertical scrollbar in IE 6/7/8/9.
+ * 2. Improve readability and alignment in all browsers.
+ */
+
+textarea {
+    overflow: auto; /* 1 */
+    vertical-align: top; /* 2 */
+}
+
+/* ==========================================================================
+   Tables
+   ========================================================================== */
+
+/**
+ * Remove most spacing between table cells.
+ */
+
+table {
+    border-collapse: collapse;
+    border-spacing: 0;
+}
+
+  </style>
+
+  <style type="text/css">
+  
+  html, body {
+    margin: 0;
+    padding: 0;
+    min-height: 100%;
+  }
+  body {
+    background: #fff;
+    font-family: "Source Sans Pro", "Helvetica Neueue", Helvetica, sans;
+    font-weight: 300;
+    font-size: 16px;
+    line-height: 1.6em;
+  }
+  #content {
+    width: 70%;
+    max-width: 850px;
+    float: left;
+    padding: 30px 60px;
+    border-left: 1px solid #ddd;
+  }
+  #sidebar {
+    width: 25%;
+    float: left;
+    padding: 30px;
+    overflow: hidden;
+  }
+  #nav {
+    font-size: 130%;
+    margin: 0 0 15px 0;
+  }
+
+  #top {
+    display: block;
+    position: fixed;
+    bottom: 5px;
+    left: 5px;
+    font-size: .85em;
+    text-transform: uppercase;
+  }
+
+  #footer {
+    font-size: .75em;
+    padding: 5px 30px;
+    border-top: 1px solid #ddd;
+    text-align: right;
+  }
+    #footer p {
+      margin: 0 0 0 30px;
+      display: inline-block;
+    }
+
+  h1, h2, h3, h4, h5 {
+    font-weight: 300;
+  }
+  h1 {
+    font-size: 2.5em;
+    line-height: 1.1em;
+    margin: 0 0 .50em 0;
+  }
+
+  h2 {
+    font-size: 1.75em;
+    margin: 1em 0 .50em 0;
+  }
+
+  h3 {
+    margin: 25px 0 10px 0;
+  }
+
+  h4 {
+    margin: 0;
+    font-size: 105%;
+  }
+
+  a {
+    color: #058;
+    text-decoration: none;
+    transition: color .3s ease-in-out;
+  }
+
+  a:hover {
+    color: #e08524;
+    transition: color .3s ease-in-out;
+  }
+
+  pre, code, .mono, .name {
+    font-family: "Ubuntu Mono", "Cousine", "DejaVu Sans Mono", monospace;
+  }
+
+  .title .name {
+    font-weight: bold;
+  }
+  .section-title {
+    margin-top: 2em;
+  }
+  .ident {
+    color: #900;
+  }
+
+  code {
+    background: #f9f9f9;
+  } 
+
+  pre {
+    background: #fefefe;
+    border: 1px solid #ddd;
+    box-shadow: 2px 2px 0 #f3f3f3;
+    margin: 0 30px;
+    padding: 15px 30px;
+  }
+
+  .codehilite {
+    margin: 0 30px 10px 30px;
+  }
+
+    .codehilite pre {
+      margin: 0;
+    }
+    .codehilite .err { background: #ff3300; color: #fff !important; } 
+
+  table#module-list {
+    font-size: 110%;
+  }
+
+    table#module-list tr td:first-child {
+      padding-right: 10px;
+      white-space: nowrap;
+    }
+
+    table#module-list td {
+      vertical-align: top;
+      padding-bottom: 8px;
+    }
+
+      table#module-list td p {
+        margin: 0 0 7px 0;
+      }
+
+  .def {
+    display: table;
+  }
+
+    .def p {
+      display: table-cell;
+      vertical-align: top;
+      text-align: left;
+    }
+
+    .def p:first-child {
+      white-space: nowrap;
+    }
+
+    .def p:last-child {
+      width: 100%;
+    }
+
+
+  #index {
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+  }
+    ul#index .class_name {
+      /* font-size: 110%; */
+      font-weight: bold;
+    }
+    #index ul {
+      margin: 0;
+    }
+
+  .item {
+    margin: 0 0 15px 0;
+  }
+
+    .item .class {
+      margin: 0 0 25px 30px;
+    }
+
+      .item .class ul.class_list {
+        margin: 0 0 20px 0;
+      }
+
+    .item .name {
+      background: #fafafa;
+      margin: 0;
+      font-weight: bold;
+      padding: 5px 10px;
+      border-radius: 3px;
+      display: inline-block;
+      min-width: 40%;
+    }
+      .item .name:hover {
+        background: #f6f6f6;
+      }
+
+    .item .empty_desc {
+      margin: 0 0 5px 0;
+      padding: 0;
+    }
+
+    .item .inheritance {
+      margin: 3px 0 0 30px;
+    }
+
+    .item .inherited {
+      color: #666;
+    }
+
+    .item .desc {
+      padding: 0 8px;
+      margin: 0;
+    }
+
+      .item .desc p {
+        margin: 0 0 10px 0;
+      }
+
+    .source_cont {
+      margin: 0;
+      padding: 0;
+    }
+
+    .source_link a {
+      background: #ffc300;
+      font-weight: 400;
+      font-size: .75em;
+      text-transform: uppercase;
+      color: #fff;
+      text-shadow: 1px 1px 0 #f4b700;
+      
+      padding: 3px 8px;
+      border-radius: 2px;
+      transition: background .3s ease-in-out;
+    }
+      .source_link a:hover {
+        background: #FF7200;
+        text-shadow: none;
+        transition: background .3s ease-in-out;
+      }
+
+    .source {
+      display: none;
+      max-height: 600px;
+      overflow-y: scroll;
+      margin-bottom: 15px;
+    }
+
+      .source .codehilite {
+        margin: 0;
+      }
+
+  .desc h1, .desc h2, .desc h3 {
+    font-size: 100% !important;
+  }
+  .clear {
+    clear: both;
+  }
+
+  @media all and (max-width: 950px) {
+    #sidebar {
+      width: 35%;
+    }
+    #content {
+      width: 65%;
+    }
+  }
+  @media all and (max-width: 650px) {
+    #top {
+      display: none;
+    }
+    #sidebar {
+      float: none;
+      width: auto;
+    }
+    #content {
+      float: none;
+      width: auto;
+      padding: 30px;
+    }
+
+    #index ul {
+      padding: 0;
+      margin-bottom: 15px;
+    }
+    #index ul li {
+      display: inline-block;
+      margin-right: 30px;
+    }
+    #footer {
+      text-align: left;
+    }
+    #footer p {
+      display: block;
+      margin: inherit;
+    }
+  }
+
+  /*****************************/
+
+  </style>
+
+
+  <style type="text/css">
+  
+/* ==========================================================================
+   EXAMPLE Media Queries for Responsive Design.
+   These examples override the primary ('mobile first') styles.
+   Modify as content requires.
+   ========================================================================== */
+
+@media only screen and (min-width: 35em) {
+    /* Style adjustments for viewports that meet the condition */
+}
+
+@media print,
+       (-o-min-device-pixel-ratio: 5/4),
+       (-webkit-min-device-pixel-ratio: 1.25),
+       (min-resolution: 120dpi) {
+    /* Style adjustments for high resolution devices */
+}
+
+/* ==========================================================================
+   Print styles.
+   Inlined to avoid required HTTP connection: h5bp.com/r
+   ========================================================================== */
+
+@media print {
+    * {
+        background: transparent !important;
+        color: #000 !important; /* Black prints faster: h5bp.com/s */
+        box-shadow: none !important;
+        text-shadow: none !important;
+    }
+
+    a,
+    a:visited {
+        text-decoration: underline;
+    }
+
+    a[href]:after {
+        content: " (" attr(href) ")";
+    }
+
+    abbr[title]:after {
+        content: " (" attr(title) ")";
+    }
+
+    /*
+     * Don't show links for images, or javascript/internal links
+     */
+
+    .ir a:after,
+    a[href^="javascript:"]:after,
+    a[href^="#"]:after {
+        content: "";
+    }
+
+    pre,
+    blockquote {
+        border: 1px solid #999;
+        page-break-inside: avoid;
+    }
+
+    thead {
+        display: table-header-group; /* h5bp.com/t */
+    }
+
+    tr,
+    img {
+        page-break-inside: avoid;
+    }
+
+    img {
+        max-width: 100% !important;
+    }
+
+    @page {
+        margin: 0.5cm;
+    }
+
+    p,
+    h2,
+    h3 {
+        orphans: 3;
+        widows: 3;
+    }
+
+    h2,
+    h3 {
+        page-break-after: avoid;
+    }
+}
+
+  </style>
+
+  <script type="text/javascript">
+  function toggle(id, $link) {
+    $node = document.getElementById(id);
+    if (!$node)
+    return;
+    if (!$node.style.display || $node.style.display == 'none') {
+    $node.style.display = 'block';
+    $link.innerHTML = 'Hide source &nequiv;';
+    } else {
+    $node.style.display = 'none';
+    $link.innerHTML = 'Show source &equiv;';
+    }
+  }
+  </script>
+</head>
+<body>
+<a href="#" id="top">Top</a>
+
+<div id="container">
+    
+  
+  <div id="sidebar">
+    <h1>Index</h1>
+    <ul id="index">
+
+
+    <li class="set"><h3><a href="#header-classes">Classes</a></h3>
+      <ul>
+        <li class="mono">
+        <span class="class_name"><a href="#rss2neo.markup_parser.markup_parser">markup_parser</a></span>
+        
+          
+  <ul>
+    <li class="mono"><a href="#rss2neo.markup_parser.markup_parser.__init__">__init__</a></li>
+    <li class="mono"><a href="#rss2neo.markup_parser.markup_parser.check_for_whole_start_tag">check_for_whole_start_tag</a></li>
+    <li class="mono"><a href="#rss2neo.markup_parser.markup_parser.clean">clean</a></li>
+    <li class="mono"><a href="#rss2neo.markup_parser.markup_parser.clear_cdata_mode">clear_cdata_mode</a></li>
+    <li class="mono"><a href="#rss2neo.markup_parser.markup_parser.close">close</a></li>
+    <li class="mono"><a href="#rss2neo.markup_parser.markup_parser.error">error</a></li>
+    <li class="mono"><a href="#rss2neo.markup_parser.markup_parser.feed">feed</a></li>
+    <li class="mono"><a href="#rss2neo.markup_parser.markup_parser.get_starttag_text">get_starttag_text</a></li>
+    <li class="mono"><a href="#rss2neo.markup_parser.markup_parser.getpos">getpos</a></li>
+    <li class="mono"><a href="#rss2neo.markup_parser.markup_parser.goahead">goahead</a></li>
+    <li class="mono"><a href="#rss2neo.markup_parser.markup_parser.handle_charref">handle_charref</a></li>
+    <li class="mono"><a href="#rss2neo.markup_parser.markup_parser.handle_comment">handle_comment</a></li>
+    <li class="mono"><a href="#rss2neo.markup_parser.markup_parser.handle_data">handle_data</a></li>
+    <li class="mono"><a href="#rss2neo.markup_parser.markup_parser.handle_decl">handle_decl</a></li>
+    <li class="mono"><a href="#rss2neo.markup_parser.markup_parser.handle_endtag">handle_endtag</a></li>
+    <li class="mono"><a href="#rss2neo.markup_parser.markup_parser.handle_entityref">handle_entityref</a></li>
+    <li class="mono"><a href="#rss2neo.markup_parser.markup_parser.handle_pi">handle_pi</a></li>
+    <li class="mono"><a href="#rss2neo.markup_parser.markup_parser.handle_startendtag">handle_startendtag</a></li>
+    <li class="mono"><a href="#rss2neo.markup_parser.markup_parser.handle_starttag">handle_starttag</a></li>
+    <li class="mono"><a href="#rss2neo.markup_parser.markup_parser.parse_bogus_comment">parse_bogus_comment</a></li>
+    <li class="mono"><a href="#rss2neo.markup_parser.markup_parser.parse_comment">parse_comment</a></li>
+    <li class="mono"><a href="#rss2neo.markup_parser.markup_parser.parse_declaration">parse_declaration</a></li>
+    <li class="mono"><a href="#rss2neo.markup_parser.markup_parser.parse_endtag">parse_endtag</a></li>
+    <li class="mono"><a href="#rss2neo.markup_parser.markup_parser.parse_html_declaration">parse_html_declaration</a></li>
+    <li class="mono"><a href="#rss2neo.markup_parser.markup_parser.parse_marked_section">parse_marked_section</a></li>
+    <li class="mono"><a href="#rss2neo.markup_parser.markup_parser.parse_pi">parse_pi</a></li>
+    <li class="mono"><a href="#rss2neo.markup_parser.markup_parser.parse_starttag">parse_starttag</a></li>
+    <li class="mono"><a href="#rss2neo.markup_parser.markup_parser.reset">reset</a></li>
+    <li class="mono"><a href="#rss2neo.markup_parser.markup_parser.set_cdata_mode">set_cdata_mode</a></li>
+    <li class="mono"><a href="#rss2neo.markup_parser.markup_parser.to_json">to_json</a></li>
+    <li class="mono"><a href="#rss2neo.markup_parser.markup_parser.unescape">unescape</a></li>
+    <li class="mono"><a href="#rss2neo.markup_parser.markup_parser.unknown_decl">unknown_decl</a></li>
+    <li class="mono"><a href="#rss2neo.markup_parser.markup_parser.updatepos">updatepos</a></li>
+  </ul>
+
+        </li>
+      </ul>
+    </li>
+
+    </ul>
+  </div>
+
+    <article id="content">
+      
+  
+
+  
+
+
+  <header id="section-intro">
+  <h1 class="title"><span class="name">rss2neo.markup_parser</span> module</h1>
+  
+  
+  <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-rss2neo.markup_parser', this);">Show source &equiv;</a></p>
+  <div id="source-rss2neo.markup_parser" class="source">
+    <pre><code>from HTMLParser import HTMLParser
+from pprint import pprint
+
+"""
+File for testing extraction of JSON from html format
+potential to be default case for structured data parsing
+
+source:
+http://www.xavierdupre.fr/blog/2013-10-27_nojs.html
+"""
+class markup_parser(HTMLParser):
+    def __init__(self, raise_exception=False) :
+        HTMLParser.__init__(self)
+        self.json  = { }
+        self.path = []
+        self.cur  = self.json
+        self.line = 0
+        self.raise_exception = raise_exception
+
+    def to_json(self, content):
+        self.feed(content)
+        return self.json
+
+    def handle_starttag(self, tag, attrs):
+        self.path.append(tag)
+        attrs = { k:v for k,v in attrs }
+        if tag in self.cur :
+            if isinstance(self.cur[tag],list) :
+                self.cur[tag].append(  { "__parent__": self.cur } )
+                self.cur = self.cur[tag][-1]
+            else :
+                self.cur[tag] = [self.cur[tag]]
+                self.cur[tag].append(  { "__parent__": self.cur } )
+                self.cur = self.cur[tag][-1]
+        else :
+            self.cur[tag] = { "__parent__": self.cur }
+            self.cur = self.cur[tag]
+
+        for a,v in attrs.items():
+            self.cur["#" + a] = v
+        self.cur[""] = ""
+
+    def handle_endtag(self, tag):
+        if tag != self.path[-1] and self.raise_exception :
+            raise Exception("html is malformed around line: {0} (it might be because of a tag <br>, <hr>, <img .. > not closed)".format(self.line))
+        del self.path[-1]
+        memo = self.cur
+        self.cur = self.cur["__parent__"]
+        self.clean(memo)
+
+    def handle_data(self, data):
+        self.line += data.count("\n")
+        if "" in self.cur :
+            self.cur[""] += data
+
+    def clean(self, values):
+        keys = list(values.keys())
+        for k in keys:
+            v = values[k]
+            if isinstance(v, str) :
+                #print ("clean", k,[v])
+                c = v.strip(" \n\r\t")
+                if c != v :
+                    if len(c) > 0 :
+                        values[k] = c
+                    else :
+                        del values[k]
+        del values["__parent__"]
+
+if __name__ == '__main__':
+    """
+    debugging demo
+    """
+    with open("outfile.html") as file:
+        content = file.read()
+        mkup = markup_parser()
+        js = mkup.to_json(content)
+        pprint(js)
+</code></pre>
+  </div>
+
+  </header>
+
+  <section id="section-items">
+
+
+    <h2 class="section-title" id="header-classes">Classes</h2>
+      
+      <div class="item">
+      <p id="rss2neo.markup_parser.markup_parser" class="name">class <span class="ident">markup_parser</span></p>
+      
+  
+  <div class="source_cont">
+  <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-rss2neo.markup_parser.markup_parser', this);">Show source &equiv;</a></p>
+  <div id="source-rss2neo.markup_parser.markup_parser" class="source">
+    <pre><code>class markup_parser(HTMLParser):
+    def __init__(self, raise_exception=False) :
+        HTMLParser.__init__(self)
+        self.json  = { }
+        self.path = []
+        self.cur  = self.json
+        self.line = 0
+        self.raise_exception = raise_exception
+
+    def to_json(self, content):
+        self.feed(content)
+        return self.json
+
+    def handle_starttag(self, tag, attrs):
+        self.path.append(tag)
+        attrs = { k:v for k,v in attrs }
+        if tag in self.cur :
+            if isinstance(self.cur[tag],list) :
+                self.cur[tag].append(  { "__parent__": self.cur } )
+                self.cur = self.cur[tag][-1]
+            else :
+                self.cur[tag] = [self.cur[tag]]
+                self.cur[tag].append(  { "__parent__": self.cur } )
+                self.cur = self.cur[tag][-1]
+        else :
+            self.cur[tag] = { "__parent__": self.cur }
+            self.cur = self.cur[tag]
+
+        for a,v in attrs.items():
+            self.cur["#" + a] = v
+        self.cur[""] = ""
+
+    def handle_endtag(self, tag):
+        if tag != self.path[-1] and self.raise_exception :
+            raise Exception("html is malformed around line: {0} (it might be because of a tag <br>, <hr>, <img .. > not closed)".format(self.line))
+        del self.path[-1]
+        memo = self.cur
+        self.cur = self.cur["__parent__"]
+        self.clean(memo)
+
+    def handle_data(self, data):
+        self.line += data.count("\n")
+        if "" in self.cur :
+            self.cur[""] += data
+
+    def clean(self, values):
+        keys = list(values.keys())
+        for k in keys:
+            v = values[k]
+            if isinstance(v, str) :
+                #print ("clean", k,[v])
+                c = v.strip(" \n\r\t")
+                if c != v :
+                    if len(c) > 0 :
+                        values[k] = c
+                    else :
+                        del values[k]
+        del values["__parent__"]
+</code></pre>
+  </div>
+</div>
+
+
+      <div class="class">
+          <h3>Ancestors (in MRO)</h3>
+          <ul class="class_list">
+          <li><a href="#rss2neo.markup_parser.markup_parser">markup_parser</a></li>
+          <li>HTMLParser.HTMLParser</li>
+          <li>markupbase.ParserBase</li>
+          </ul>
+          <h3>Class variables</h3>
+            <div class="item">
+            <p id="rss2neo.markup_parser.markup_parser.CDATA_CONTENT_ELEMENTS" class="name">var <span class="ident">CDATA_CONTENT_ELEMENTS</span></p>
+            
+
+            
+  
+  <div class="source_cont">
+</div>
+
+            </div>
+            <div class="item">
+            <p id="rss2neo.markup_parser.markup_parser.entitydefs" class="name">var <span class="ident">entitydefs</span></p>
+            
+
+            
+  
+  <div class="source_cont">
+</div>
+
+            </div>
+          <h3>Instance variables</h3>
+            <div class="item">
+            <p id="rss2neo.markup_parser.markup_parser.cur" class="name">var <span class="ident">cur</span></p>
+            
+
+            
+  
+  <div class="source_cont">
+</div>
+
+            </div>
+            <div class="item">
+            <p id="rss2neo.markup_parser.markup_parser.json" class="name">var <span class="ident">json</span></p>
+            
+
+            
+  
+  <div class="source_cont">
+</div>
+
+            </div>
+            <div class="item">
+            <p id="rss2neo.markup_parser.markup_parser.line" class="name">var <span class="ident">line</span></p>
+            
+
+            
+  
+  <div class="source_cont">
+</div>
+
+            </div>
+            <div class="item">
+            <p id="rss2neo.markup_parser.markup_parser.path" class="name">var <span class="ident">path</span></p>
+            
+
+            
+  
+  <div class="source_cont">
+</div>
+
+            </div>
+            <div class="item">
+            <p id="rss2neo.markup_parser.markup_parser.raise_exception" class="name">var <span class="ident">raise_exception</span></p>
+            
+
+            
+  
+  <div class="source_cont">
+</div>
+
+            </div>
+          <h3>Methods</h3>
+            
+  <div class="item">
+    <div class="name def" id="rss2neo.markup_parser.markup_parser.__init__">
+    <p>def <span class="ident">__init__</span>(</p><p>self, raise_exception=False)</p>
+    </div>
+    
+
+    
+  
+  <div class="source_cont">
+  <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-rss2neo.markup_parser.markup_parser.__init__', this);">Show source &equiv;</a></p>
+  <div id="source-rss2neo.markup_parser.markup_parser.__init__" class="source">
+    <pre><code>def __init__(self, raise_exception=False) :
+    HTMLParser.__init__(self)
+    self.json  = { }
+    self.path = []
+    self.cur  = self.json
+    self.line = 0
+    self.raise_exception = raise_exception
+</code></pre>
+  </div>
+</div>
+
+  </div>
+  
+            
+  <div class="item">
+    <div class="name def" id="rss2neo.markup_parser.markup_parser.check_for_whole_start_tag">
+    <p>def <span class="ident">check_for_whole_start_tag</span>(</p><p>self, i)</p>
+    </div>
+    
+
+    
+  
+  <div class="source_cont">
+  <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-rss2neo.markup_parser.markup_parser.check_for_whole_start_tag', this);">Show source &equiv;</a></p>
+  <div id="source-rss2neo.markup_parser.markup_parser.check_for_whole_start_tag" class="source">
+    <pre><code>def check_for_whole_start_tag(self, i):
+    rawdata = self.rawdata
+    m = locatestarttagend.match(rawdata, i)
+    if m:
+        j = m.end()
+        next = rawdata[j:j+1]
+        if next == ">":
+            return j + 1
+        if next == "/":
+            if rawdata.startswith("/>", j):
+                return j + 2
+            if rawdata.startswith("/", j):
+                # buffer boundary
+                return -1
+            # else bogus input
+            self.updatepos(i, j + 1)
+            self.error("malformed empty start tag")
+        if next == "":
+            # end of input
+            return -1
+        if next in ("abcdefghijklmnopqrstuvwxyz=/"
+                    "ABCDEFGHIJKLMNOPQRSTUVWXYZ"):
+            # end of input in or before attribute value, or we have the
+            # '/' from a '/>' ending
+            return -1
+        if j > i:
+            return j
+        else:
+            return i + 1
+    raise AssertionError("we should not get here!")
+</code></pre>
+  </div>
+</div>
+
+  </div>
+  
+            
+  <div class="item">
+    <div class="name def" id="rss2neo.markup_parser.markup_parser.clean">
+    <p>def <span class="ident">clean</span>(</p><p>self, values)</p>
+    </div>
+    
+
+    
+  
+  <div class="source_cont">
+  <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-rss2neo.markup_parser.markup_parser.clean', this);">Show source &equiv;</a></p>
+  <div id="source-rss2neo.markup_parser.markup_parser.clean" class="source">
+    <pre><code>def clean(self, values):
+    keys = list(values.keys())
+    for k in keys:
+        v = values[k]
+        if isinstance(v, str) :
+            #print ("clean", k,[v])
+            c = v.strip(" \n\r\t")
+            if c != v :
+                if len(c) > 0 :
+                    values[k] = c
+                else :
+                    del values[k]
+    del values["__parent__"]
+</code></pre>
+  </div>
+</div>
+
+  </div>
+  
+            
+  <div class="item">
+    <div class="name def" id="rss2neo.markup_parser.markup_parser.clear_cdata_mode">
+    <p>def <span class="ident">clear_cdata_mode</span>(</p><p>self)</p>
+    </div>
+    
+
+    
+  
+  <div class="source_cont">
+  <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-rss2neo.markup_parser.markup_parser.clear_cdata_mode', this);">Show source &equiv;</a></p>
+  <div id="source-rss2neo.markup_parser.markup_parser.clear_cdata_mode" class="source">
+    <pre><code>def clear_cdata_mode(self):
+    self.interesting = interesting_normal
+    self.cdata_elem = None
+</code></pre>
+  </div>
+</div>
+
+  </div>
+  
+            
+  <div class="item">
+    <div class="name def" id="rss2neo.markup_parser.markup_parser.close">
+    <p>def <span class="ident">close</span>(</p><p>self)</p>
+    </div>
+    
+
+    
+  
+    <div class="desc"><p>Handle any buffered data.</p></div>
+  <div class="source_cont">
+  <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-rss2neo.markup_parser.markup_parser.close', this);">Show source &equiv;</a></p>
+  <div id="source-rss2neo.markup_parser.markup_parser.close" class="source">
+    <pre><code>def close(self):
+    """Handle any buffered data."""
+    self.goahead(1)
+</code></pre>
+  </div>
+</div>
+
+  </div>
+  
+            
+  <div class="item">
+    <div class="name def" id="rss2neo.markup_parser.markup_parser.error">
+    <p>def <span class="ident">error</span>(</p><p>self, message)</p>
+    </div>
+    
+
+    
+  
+  <div class="source_cont">
+  <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-rss2neo.markup_parser.markup_parser.error', this);">Show source &equiv;</a></p>
+  <div id="source-rss2neo.markup_parser.markup_parser.error" class="source">
+    <pre><code>def error(self, message):
+    raise HTMLParseError(message, self.getpos())
+</code></pre>
+  </div>
+</div>
+
+  </div>
+  
+            
+  <div class="item">
+    <div class="name def" id="rss2neo.markup_parser.markup_parser.feed">
+    <p>def <span class="ident">feed</span>(</p><p>self, data)</p>
+    </div>
+    
+
+    
+  
+    <div class="desc"><p>Feed data to the parser.</p>
+<p>Call this as often as you want, with as little or as much text
+as you want (may include '\n').</p></div>
+  <div class="source_cont">
+  <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-rss2neo.markup_parser.markup_parser.feed', this);">Show source &equiv;</a></p>
+  <div id="source-rss2neo.markup_parser.markup_parser.feed" class="source">
+    <pre><code>def feed(self, data):
+    r"""Feed data to the parser.
+    Call this as often as you want, with as little or as much text
+    as you want (may include '\n').
+    """
+    self.rawdata = self.rawdata + data
+    self.goahead(0)
+</code></pre>
+  </div>
+</div>
+
+  </div>
+  
+            
+  <div class="item">
+    <div class="name def" id="rss2neo.markup_parser.markup_parser.get_starttag_text">
+    <p>def <span class="ident">get_starttag_text</span>(</p><p>self)</p>
+    </div>
+    
+
+    
+  
+    <div class="desc"><p>Return full source of start tag: '&lt;...&gt;'.</p></div>
+  <div class="source_cont">
+  <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-rss2neo.markup_parser.markup_parser.get_starttag_text', this);">Show source &equiv;</a></p>
+  <div id="source-rss2neo.markup_parser.markup_parser.get_starttag_text" class="source">
+    <pre><code>def get_starttag_text(self):
+    """Return full source of start tag: '<...>'."""
+    return self.__starttag_text
+</code></pre>
+  </div>
+</div>
+
+  </div>
+  
+            
+  <div class="item">
+    <div class="name def" id="rss2neo.markup_parser.markup_parser.getpos">
+    <p>def <span class="ident">getpos</span>(</p><p>self)</p>
+    </div>
+    
+
+    
+  
+    <div class="desc"><p>Return current line number and offset.</p></div>
+  <div class="source_cont">
+  <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-rss2neo.markup_parser.markup_parser.getpos', this);">Show source &equiv;</a></p>
+  <div id="source-rss2neo.markup_parser.markup_parser.getpos" class="source">
+    <pre><code>def getpos(self):
+    """Return current line number and offset."""
+    return self.lineno, self.offset
+</code></pre>
+  </div>
+</div>
+
+  </div>
+  
+            
+  <div class="item">
+    <div class="name def" id="rss2neo.markup_parser.markup_parser.goahead">
+    <p>def <span class="ident">goahead</span>(</p><p>self, end)</p>
+    </div>
+    
+
+    
+  
+  <div class="source_cont">
+  <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-rss2neo.markup_parser.markup_parser.goahead', this);">Show source &equiv;</a></p>
+  <div id="source-rss2neo.markup_parser.markup_parser.goahead" class="source">
+    <pre><code>def goahead(self, end):
+    rawdata = self.rawdata
+    i = 0
+    n = len(rawdata)
+    while i < n:
+        match = self.interesting.search(rawdata, i) # < or &
+        if match:
+            j = match.start()
+        else:
+            if self.cdata_elem:
+                break
+            j = n
+        if i < j: self.handle_data(rawdata[i:j])
+        i = self.updatepos(i, j)
+        if i == n: break
+        startswith = rawdata.startswith
+        if startswith('<', i):
+            if starttagopen.match(rawdata, i): # < + letter
+                k = self.parse_starttag(i)
+            elif startswith("</", i):
+                k = self.parse_endtag(i)
+            elif startswith("<!--", i):
+                k = self.parse_comment(i)
+            elif startswith("<?", i):
+                k = self.parse_pi(i)
+            elif startswith("<!", i):
+                k = self.parse_html_declaration(i)
+            elif (i + 1) < n:
+                self.handle_data("<")
+                k = i + 1
+            else:
+                break
+            if k < 0:
+                if not end:
+                    break
+                k = rawdata.find('>', i + 1)
+                if k < 0:
+                    k = rawdata.find('<', i + 1)
+                    if k < 0:
+                        k = i + 1
+                else:
+                    k += 1
+                self.handle_data(rawdata[i:k])
+            i = self.updatepos(i, k)
+        elif startswith("&#", i):
+            match = charref.match(rawdata, i)
+            if match:
+                name = match.group()[2:-1]
+                self.handle_charref(name)
+                k = match.end()
+                if not startswith(';', k-1):
+                    k = k - 1
+                i = self.updatepos(i, k)
+                continue
+            else:
+                if ";" in rawdata[i:]:  # bail by consuming '&#'
+                    self.handle_data(rawdata[i:i+2])
+                    i = self.updatepos(i, i+2)
+                break
+        elif startswith('&', i):
+            match = entityref.match(rawdata, i)
+            if match:
+                name = match.group(1)
+                self.handle_entityref(name)
+                k = match.end()
+                if not startswith(';', k-1):
+                    k = k - 1
+                i = self.updatepos(i, k)
+                continue
+            match = incomplete.match(rawdata, i)
+            if match:
+                # match.group() will contain at least 2 chars
+                if end and match.group() == rawdata[i:]:
+                    self.error("EOF in middle of entity or char ref")
+                # incomplete
+                break
+            elif (i + 1) < n:
+                # not the end of the buffer, and can't be confused
+                # with some other construct
+                self.handle_data("&")
+                i = self.updatepos(i, i + 1)
+            else:
+                break
+        else:
+            assert 0, "interesting.search() lied"
+    # end while
+    if end and i < n and not self.cdata_elem:
+        self.handle_data(rawdata[i:n])
+        i = self.updatepos(i, n)
+    self.rawdata = rawdata[i:]
+</code></pre>
+  </div>
+</div>
+
+  </div>
+  
+            
+  <div class="item">
+    <div class="name def" id="rss2neo.markup_parser.markup_parser.handle_charref">
+    <p>def <span class="ident">handle_charref</span>(</p><p>self, name)</p>
+    </div>
+    
+
+    
+  
+  <div class="source_cont">
+  <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-rss2neo.markup_parser.markup_parser.handle_charref', this);">Show source &equiv;</a></p>
+  <div id="source-rss2neo.markup_parser.markup_parser.handle_charref" class="source">
+    <pre><code>def handle_charref(self, name):
+    pass
+</code></pre>
+  </div>
+</div>
+
+  </div>
+  
+            
+  <div class="item">
+    <div class="name def" id="rss2neo.markup_parser.markup_parser.handle_comment">
+    <p>def <span class="ident">handle_comment</span>(</p><p>self, data)</p>
+    </div>
+    
+
+    
+  
+  <div class="source_cont">
+  <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-rss2neo.markup_parser.markup_parser.handle_comment', this);">Show source &equiv;</a></p>
+  <div id="source-rss2neo.markup_parser.markup_parser.handle_comment" class="source">
+    <pre><code>def handle_comment(self, data):
+    pass
+</code></pre>
+  </div>
+</div>
+
+  </div>
+  
+            
+  <div class="item">
+    <div class="name def" id="rss2neo.markup_parser.markup_parser.handle_data">
+    <p>def <span class="ident">handle_data</span>(</p><p>self, data)</p>
+    </div>
+    
+
+    
+  
+  <div class="source_cont">
+  <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-rss2neo.markup_parser.markup_parser.handle_data', this);">Show source &equiv;</a></p>
+  <div id="source-rss2neo.markup_parser.markup_parser.handle_data" class="source">
+    <pre><code>def handle_data(self, data):
+    self.line += data.count("\n")
+    if "" in self.cur :
+        self.cur[""] += data
+</code></pre>
+  </div>
+</div>
+
+  </div>
+  
+            
+  <div class="item">
+    <div class="name def" id="rss2neo.markup_parser.markup_parser.handle_decl">
+    <p>def <span class="ident">handle_decl</span>(</p><p>self, decl)</p>
+    </div>
+    
+
+    
+  
+  <div class="source_cont">
+  <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-rss2neo.markup_parser.markup_parser.handle_decl', this);">Show source &equiv;</a></p>
+  <div id="source-rss2neo.markup_parser.markup_parser.handle_decl" class="source">
+    <pre><code>def handle_decl(self, decl):
+    pass
+</code></pre>
+  </div>
+</div>
+
+  </div>
+  
+            
+  <div class="item">
+    <div class="name def" id="rss2neo.markup_parser.markup_parser.handle_endtag">
+    <p>def <span class="ident">handle_endtag</span>(</p><p>self, tag)</p>
+    </div>
+    
+
+    
+  
+  <div class="source_cont">
+  <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-rss2neo.markup_parser.markup_parser.handle_endtag', this);">Show source &equiv;</a></p>
+  <div id="source-rss2neo.markup_parser.markup_parser.handle_endtag" class="source">
+    <pre><code>def handle_endtag(self, tag):
+    if tag != self.path[-1] and self.raise_exception :
+        raise Exception("html is malformed around line: {0} (it might be because of a tag <br>, <hr>, <img .. > not closed)".format(self.line))
+    del self.path[-1]
+    memo = self.cur
+    self.cur = self.cur["__parent__"]
+    self.clean(memo)
+</code></pre>
+  </div>
+</div>
+
+  </div>
+  
+            
+  <div class="item">
+    <div class="name def" id="rss2neo.markup_parser.markup_parser.handle_entityref">
+    <p>def <span class="ident">handle_entityref</span>(</p><p>self, name)</p>
+    </div>
+    
+
+    
+  
+  <div class="source_cont">
+  <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-rss2neo.markup_parser.markup_parser.handle_entityref', this);">Show source &equiv;</a></p>
+  <div id="source-rss2neo.markup_parser.markup_parser.handle_entityref" class="source">
+    <pre><code>def handle_entityref(self, name):
+    pass
+</code></pre>
+  </div>
+</div>
+
+  </div>
+  
+            
+  <div class="item">
+    <div class="name def" id="rss2neo.markup_parser.markup_parser.handle_pi">
+    <p>def <span class="ident">handle_pi</span>(</p><p>self, data)</p>
+    </div>
+    
+
+    
+  
+  <div class="source_cont">
+  <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-rss2neo.markup_parser.markup_parser.handle_pi', this);">Show source &equiv;</a></p>
+  <div id="source-rss2neo.markup_parser.markup_parser.handle_pi" class="source">
+    <pre><code>def handle_pi(self, data):
+    pass
+</code></pre>
+  </div>
+</div>
+
+  </div>
+  
+            
+  <div class="item">
+    <div class="name def" id="rss2neo.markup_parser.markup_parser.handle_startendtag">
+    <p>def <span class="ident">handle_startendtag</span>(</p><p>self, tag, attrs)</p>
+    </div>
+    
+
+    
+  
+  <div class="source_cont">
+  <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-rss2neo.markup_parser.markup_parser.handle_startendtag', this);">Show source &equiv;</a></p>
+  <div id="source-rss2neo.markup_parser.markup_parser.handle_startendtag" class="source">
+    <pre><code>def handle_startendtag(self, tag, attrs):
+    self.handle_starttag(tag, attrs)
+    self.handle_endtag(tag)
+</code></pre>
+  </div>
+</div>
+
+  </div>
+  
+            
+  <div class="item">
+    <div class="name def" id="rss2neo.markup_parser.markup_parser.handle_starttag">
+    <p>def <span class="ident">handle_starttag</span>(</p><p>self, tag, attrs)</p>
+    </div>
+    
+
+    
+  
+  <div class="source_cont">
+  <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-rss2neo.markup_parser.markup_parser.handle_starttag', this);">Show source &equiv;</a></p>
+  <div id="source-rss2neo.markup_parser.markup_parser.handle_starttag" class="source">
+    <pre><code>def handle_starttag(self, tag, attrs):
+    self.path.append(tag)
+    attrs = { k:v for k,v in attrs }
+    if tag in self.cur :
+        if isinstance(self.cur[tag],list) :
+            self.cur[tag].append(  { "__parent__": self.cur } )
+            self.cur = self.cur[tag][-1]
+        else :
+            self.cur[tag] = [self.cur[tag]]
+            self.cur[tag].append(  { "__parent__": self.cur } )
+            self.cur = self.cur[tag][-1]
+    else :
+        self.cur[tag] = { "__parent__": self.cur }
+        self.cur = self.cur[tag]
+    for a,v in attrs.items():
+        self.cur["#" + a] = v
+    self.cur[""] = ""
+</code></pre>
+  </div>
+</div>
+
+  </div>
+  
+            
+  <div class="item">
+    <div class="name def" id="rss2neo.markup_parser.markup_parser.parse_bogus_comment">
+    <p>def <span class="ident">parse_bogus_comment</span>(</p><p>self, i, report=1)</p>
+    </div>
+    
+
+    
+  
+  <div class="source_cont">
+  <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-rss2neo.markup_parser.markup_parser.parse_bogus_comment', this);">Show source &equiv;</a></p>
+  <div id="source-rss2neo.markup_parser.markup_parser.parse_bogus_comment" class="source">
+    <pre><code>def parse_bogus_comment(self, i, report=1):
+    rawdata = self.rawdata
+    if rawdata[i:i+2] not in ('<!', '</'):
+        self.error('unexpected call to parse_comment()')
+    pos = rawdata.find('>', i+2)
+    if pos == -1:
+        return -1
+    if report:
+        self.handle_comment(rawdata[i+2:pos])
+    return pos + 1
+</code></pre>
+  </div>
+</div>
+
+  </div>
+  
+            
+  <div class="item">
+    <div class="name def" id="rss2neo.markup_parser.markup_parser.parse_comment">
+    <p>def <span class="ident">parse_comment</span>(</p><p>self, i, report=1)</p>
+    </div>
+    
+
+    
+  
+  <div class="source_cont">
+  <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-rss2neo.markup_parser.markup_parser.parse_comment', this);">Show source &equiv;</a></p>
+  <div id="source-rss2neo.markup_parser.markup_parser.parse_comment" class="source">
+    <pre><code>def parse_comment(self, i, report=1):
+    rawdata = self.rawdata
+    if rawdata[i:i+4] != '<!--':
+        self.error('unexpected call to parse_comment()')
+    match = _commentclose.search(rawdata, i+4)
+    if not match:
+        return -1
+    if report:
+        j = match.start(0)
+        self.handle_comment(rawdata[i+4: j])
+    return match.end(0)
+</code></pre>
+  </div>
+</div>
+
+  </div>
+  
+            
+  <div class="item">
+    <div class="name def" id="rss2neo.markup_parser.markup_parser.parse_declaration">
+    <p>def <span class="ident">parse_declaration</span>(</p><p>self, i)</p>
+    </div>
+    
+
+    
+  
+  <div class="source_cont">
+  <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-rss2neo.markup_parser.markup_parser.parse_declaration', this);">Show source &equiv;</a></p>
+  <div id="source-rss2neo.markup_parser.markup_parser.parse_declaration" class="source">
+    <pre><code>def parse_declaration(self, i):
+    # This is some sort of declaration; in "HTML as
+    # deployed," this should only be the document type
+    # declaration ("<!DOCTYPE html...>").
+    # ISO 8879:1986, however, has more complex
+    # declaration syntax for elements in <!...>, including:
+    # --comment--
+    # [marked section]
+    # name in the following list: ENTITY, DOCTYPE, ELEMENT,
+    # ATTLIST, NOTATION, SHORTREF, USEMAP,
+    # LINKTYPE, LINK, IDLINK, USELINK, SYSTEM
+    rawdata = self.rawdata
+    j = i + 2
+    assert rawdata[i:j] == "<!", "unexpected call to parse_declaration"
+    if rawdata[j:j+1] == ">":
+        # the empty comment <!>
+        return j + 1
+    if rawdata[j:j+1] in ("-", ""):
+        # Start of comment followed by buffer boundary,
+        # or just a buffer boundary.
+        return -1
+    # A simple, practical version could look like: ((name|stringlit) S*) + '>'
+    n = len(rawdata)
+    if rawdata[j:j+2] == '--': #comment
+        # Locate --.*-- as the body of the comment
+        return self.parse_comment(i)
+    elif rawdata[j] == '[': #marked section
+        # Locate [statusWord [...arbitrary SGML...]] as the body of the marked section
+        # Where statusWord is one of TEMP, CDATA, IGNORE, INCLUDE, RCDATA
+        # Note that this is extended by Microsoft Office "Save as Web" function
+        # to include [if...] and [endif].
+        return self.parse_marked_section(i)
+    else: #all other declaration elements
+        decltype, j = self._scan_name(j, i)
+    if j < 0:
+        return j
+    if decltype == "doctype":
+        self._decl_otherchars = ''
+    while j < n:
+        c = rawdata[j]
+        if c == ">":
+            # end of declaration syntax
+            data = rawdata[i+2:j]
+            if decltype == "doctype":
+                self.handle_decl(data)
+            else:
+                # According to the HTML5 specs sections "8.2.4.44 Bogus
+                # comment state" and "8.2.4.45 Markup declaration open
+                # state", a comment token should be emitted.
+                # Calling unknown_decl provides more flexibility though.
+                self.unknown_decl(data)
+            return j + 1
+        if c in "\"'":
+            m = _declstringlit_match(rawdata, j)
+            if not m:
+                return -1 # incomplete
+            j = m.end()
+        elif c in "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ":
+            name, j = self._scan_name(j, i)
+        elif c in self._decl_otherchars:
+            j = j + 1
+        elif c == "[":
+            # this could be handled in a separate doctype parser
+            if decltype == "doctype":
+                j = self._parse_doctype_subset(j + 1, i)
+            elif decltype in ("attlist", "linktype", "link", "element"):
+                # must tolerate []'d groups in a content model in an element declaration
+                # also in data attribute specifications of attlist declaration
+                # also link type declaration subsets in linktype declarations
+                # also link attribute specification lists in link declarations
+                self.error("unsupported '[' char in %s declaration" % decltype)
+            else:
+                self.error("unexpected '[' char in declaration")
+        else:
+            self.error(
+                "unexpected %r char in declaration" % rawdata[j])
+        if j < 0:
+            return j
+    return -1 # incomplete
+</code></pre>
+  </div>
+</div>
+
+  </div>
+  
+            
+  <div class="item">
+    <div class="name def" id="rss2neo.markup_parser.markup_parser.parse_endtag">
+    <p>def <span class="ident">parse_endtag</span>(</p><p>self, i)</p>
+    </div>
+    
+
+    
+  
+  <div class="source_cont">
+  <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-rss2neo.markup_parser.markup_parser.parse_endtag', this);">Show source &equiv;</a></p>
+  <div id="source-rss2neo.markup_parser.markup_parser.parse_endtag" class="source">
+    <pre><code>def parse_endtag(self, i):
+    rawdata = self.rawdata
+    assert rawdata[i:i+2] == "</", "unexpected call to parse_endtag"
+    match = endendtag.search(rawdata, i+1) # >
+    if not match:
+        return -1
+    gtpos = match.end()
+    match = endtagfind.match(rawdata, i) # </ + tag + >
+    if not match:
+        if self.cdata_elem is not None:
+            self.handle_data(rawdata[i:gtpos])
+            return gtpos
+        # find the name: w3.org/TR/html5/tokenization.html#tag-name-state
+        namematch = tagfind.match(rawdata, i+2)
+        if not namematch:
+            # w3.org/TR/html5/tokenization.html#end-tag-open-state
+            if rawdata[i:i+3] == '</>':
+                return i+3
+            else:
+                return self.parse_bogus_comment(i)
+        tagname = namematch.group(1).lower()
+        # consume and ignore other stuff between the name and the >
+        # Note: this is not 100% correct, since we might have things like
+        # </tag attr=">">, but looking for > after tha name should cover
+        # most of the cases and is much simpler
+        gtpos = rawdata.find('>', namematch.end())
+        self.handle_endtag(tagname)
+        return gtpos+1
+    elem = match.group(1).lower() # script or style
+    if self.cdata_elem is not None:
+        if elem != self.cdata_elem:
+            self.handle_data(rawdata[i:gtpos])
+            return gtpos
+    self.handle_endtag(elem)
+    self.clear_cdata_mode()
+    return gtpos
+</code></pre>
+  </div>
+</div>
+
+  </div>
+  
+            
+  <div class="item">
+    <div class="name def" id="rss2neo.markup_parser.markup_parser.parse_html_declaration">
+    <p>def <span class="ident">parse_html_declaration</span>(</p><p>self, i)</p>
+    </div>
+    
+
+    
+  
+  <div class="source_cont">
+  <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-rss2neo.markup_parser.markup_parser.parse_html_declaration', this);">Show source &equiv;</a></p>
+  <div id="source-rss2neo.markup_parser.markup_parser.parse_html_declaration" class="source">
+    <pre><code>def parse_html_declaration(self, i):
+    rawdata = self.rawdata
+    if rawdata[i:i+2] != '<!':
+        self.error('unexpected call to parse_html_declaration()')
+    if rawdata[i:i+4] == '<!--':
+        # this case is actually already handled in goahead()
+        return self.parse_comment(i)
+    elif rawdata[i:i+3] == '<![':
+        return self.parse_marked_section(i)
+    elif rawdata[i:i+9].lower() == '<!doctype':
+        # find the closing >
+        gtpos = rawdata.find('>', i+9)
+        if gtpos == -1:
+            return -1
+        self.handle_decl(rawdata[i+2:gtpos])
+        return gtpos+1
+    else:
+        return self.parse_bogus_comment(i)
+</code></pre>
+  </div>
+</div>
+
+  </div>
+  
+            
+  <div class="item">
+    <div class="name def" id="rss2neo.markup_parser.markup_parser.parse_marked_section">
+    <p>def <span class="ident">parse_marked_section</span>(</p><p>self, i, report=1)</p>
+    </div>
+    
+
+    
+  
+  <div class="source_cont">
+  <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-rss2neo.markup_parser.markup_parser.parse_marked_section', this);">Show source &equiv;</a></p>
+  <div id="source-rss2neo.markup_parser.markup_parser.parse_marked_section" class="source">
+    <pre><code>def parse_marked_section(self, i, report=1):
+    rawdata= self.rawdata
+    assert rawdata[i:i+3] == '<![', "unexpected call to parse_marked_section()"
+    sectName, j = self._scan_name( i+3, i )
+    if j < 0:
+        return j
+    if sectName in ("temp", "cdata", "ignore", "include", "rcdata"):
+        # look for standard ]]> ending
+        match= _markedsectionclose.search(rawdata, i+3)
+    elif sectName in ("if", "else", "endif"):
+        # look for MS Office ]> ending
+        match= _msmarkedsectionclose.search(rawdata, i+3)
+    else:
+        self.error('unknown status keyword %r in marked section' % rawdata[i+3:j])
+    if not match:
+        return -1
+    if report:
+        j = match.start(0)
+        self.unknown_decl(rawdata[i+3: j])
+    return match.end(0)
+</code></pre>
+  </div>
+</div>
+
+  </div>
+  
+            
+  <div class="item">
+    <div class="name def" id="rss2neo.markup_parser.markup_parser.parse_pi">
+    <p>def <span class="ident">parse_pi</span>(</p><p>self, i)</p>
+    </div>
+    
+
+    
+  
+  <div class="source_cont">
+  <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-rss2neo.markup_parser.markup_parser.parse_pi', this);">Show source &equiv;</a></p>
+  <div id="source-rss2neo.markup_parser.markup_parser.parse_pi" class="source">
+    <pre><code>def parse_pi(self, i):
+    rawdata = self.rawdata
+    assert rawdata[i:i+2] == '<?', 'unexpected call to parse_pi()'
+    match = piclose.search(rawdata, i+2) # >
+    if not match:
+        return -1
+    j = match.start()
+    self.handle_pi(rawdata[i+2: j])
+    j = match.end()
+    return j
+</code></pre>
+  </div>
+</div>
+
+  </div>
+  
+            
+  <div class="item">
+    <div class="name def" id="rss2neo.markup_parser.markup_parser.parse_starttag">
+    <p>def <span class="ident">parse_starttag</span>(</p><p>self, i)</p>
+    </div>
+    
+
+    
+  
+  <div class="source_cont">
+  <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-rss2neo.markup_parser.markup_parser.parse_starttag', this);">Show source &equiv;</a></p>
+  <div id="source-rss2neo.markup_parser.markup_parser.parse_starttag" class="source">
+    <pre><code>def parse_starttag(self, i):
+    self.__starttag_text = None
+    endpos = self.check_for_whole_start_tag(i)
+    if endpos < 0:
+        return endpos
+    rawdata = self.rawdata
+    self.__starttag_text = rawdata[i:endpos]
+    # Now parse the data between i+1 and j into a tag and attrs
+    attrs = []
+    match = tagfind.match(rawdata, i+1)
+    assert match, 'unexpected call to parse_starttag()'
+    k = match.end()
+    self.lasttag = tag = match.group(1).lower()
+    while k < endpos:
+        m = attrfind.match(rawdata, k)
+        if not m:
+            break
+        attrname, rest, attrvalue = m.group(1, 2, 3)
+        if not rest:
+            attrvalue = None
+        elif attrvalue[:1] == '\'' == attrvalue[-1:] or \
+             attrvalue[:1] == '"' == attrvalue[-1:]:
+            attrvalue = attrvalue[1:-1]
+        if attrvalue:
+            attrvalue = self.unescape(attrvalue)
+        attrs.append((attrname.lower(), attrvalue))
+        k = m.end()
+    end = rawdata[k:endpos].strip()
+    if end not in (">", "/>"):
+        lineno, offset = self.getpos()
+        if "\n" in self.__starttag_text:
+            lineno = lineno + self.__starttag_text.count("\n")
+            offset = len(self.__starttag_text) \
+                     - self.__starttag_text.rfind("\n")
+        else:
+            offset = offset + len(self.__starttag_text)
+        self.handle_data(rawdata[i:endpos])
+        return endpos
+    if end.endswith('/>'):
+        # XHTML-style empty tag: <span attr="value" />
+        self.handle_startendtag(tag, attrs)
+    else:
+        self.handle_starttag(tag, attrs)
+        if tag in self.CDATA_CONTENT_ELEMENTS:
+            self.set_cdata_mode(tag)
+    return endpos
+</code></pre>
+  </div>
+</div>
+
+  </div>
+  
+            
+  <div class="item">
+    <div class="name def" id="rss2neo.markup_parser.markup_parser.reset">
+    <p>def <span class="ident">reset</span>(</p><p>self)</p>
+    </div>
+    
+
+    
+  
+    <div class="desc"><p>Reset this instance.  Loses all unprocessed data.</p></div>
+  <div class="source_cont">
+  <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-rss2neo.markup_parser.markup_parser.reset', this);">Show source &equiv;</a></p>
+  <div id="source-rss2neo.markup_parser.markup_parser.reset" class="source">
+    <pre><code>def reset(self):
+    """Reset this instance.  Loses all unprocessed data."""
+    self.rawdata = ''
+    self.lasttag = '???'
+    self.interesting = interesting_normal
+    self.cdata_elem = None
+    markupbase.ParserBase.reset(self)
+</code></pre>
+  </div>
+</div>
+
+  </div>
+  
+            
+  <div class="item">
+    <div class="name def" id="rss2neo.markup_parser.markup_parser.set_cdata_mode">
+    <p>def <span class="ident">set_cdata_mode</span>(</p><p>self, elem)</p>
+    </div>
+    
+
+    
+  
+  <div class="source_cont">
+  <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-rss2neo.markup_parser.markup_parser.set_cdata_mode', this);">Show source &equiv;</a></p>
+  <div id="source-rss2neo.markup_parser.markup_parser.set_cdata_mode" class="source">
+    <pre><code>def set_cdata_mode(self, elem):
+    self.cdata_elem = elem.lower()
+    self.interesting = re.compile(r'</\s*%s\s*>' % self.cdata_elem, re.I)
+</code></pre>
+  </div>
+</div>
+
+  </div>
+  
+            
+  <div class="item">
+    <div class="name def" id="rss2neo.markup_parser.markup_parser.to_json">
+    <p>def <span class="ident">to_json</span>(</p><p>self, content)</p>
+    </div>
+    
+
+    
+  
+  <div class="source_cont">
+  <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-rss2neo.markup_parser.markup_parser.to_json', this);">Show source &equiv;</a></p>
+  <div id="source-rss2neo.markup_parser.markup_parser.to_json" class="source">
+    <pre><code>def to_json(self, content):
+    self.feed(content)
+    return self.json
+</code></pre>
+  </div>
+</div>
+
+  </div>
+  
+            
+  <div class="item">
+    <div class="name def" id="rss2neo.markup_parser.markup_parser.unescape">
+    <p>def <span class="ident">unescape</span>(</p><p>self, s)</p>
+    </div>
+    
+
+    
+  
+  <div class="source_cont">
+  <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-rss2neo.markup_parser.markup_parser.unescape', this);">Show source &equiv;</a></p>
+  <div id="source-rss2neo.markup_parser.markup_parser.unescape" class="source">
+    <pre><code>def unescape(self, s):
+    if '&' not in s:
+        return s
+    def replaceEntities(s):
+        s = s.groups()[0]
+        try:
+            if s[0] == "#":
+                s = s[1:]
+                if s[0] in ['x','X']:
+                    c = int(s[1:], 16)
+                else:
+                    c = int(s)
+                return unichr(c)
+        except ValueError:
+            return '&#'+s+';'
+        else:
+            # Cannot use name2codepoint directly, because HTMLParser supports apos,
+            # which is not part of HTML 4
+            import htmlentitydefs
+            if HTMLParser.entitydefs is None:
+                entitydefs = HTMLParser.entitydefs = {'apos':u"'"}
+                for k, v in htmlentitydefs.name2codepoint.iteritems():
+                    entitydefs[k] = unichr(v)
+            try:
+                return self.entitydefs[s]
+            except KeyError:
+                return '&'+s+';'
+    return re.sub(r"&(#?[xX]?(?:[0-9a-fA-F]+|\w{1,8}));", replaceEntities, s)
+</code></pre>
+  </div>
+</div>
+
+  </div>
+  
+            
+  <div class="item">
+    <div class="name def" id="rss2neo.markup_parser.markup_parser.unknown_decl">
+    <p>def <span class="ident">unknown_decl</span>(</p><p>self, data)</p>
+    </div>
+    
+
+    
+  
+  <div class="source_cont">
+  <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-rss2neo.markup_parser.markup_parser.unknown_decl', this);">Show source &equiv;</a></p>
+  <div id="source-rss2neo.markup_parser.markup_parser.unknown_decl" class="source">
+    <pre><code>def unknown_decl(self, data):
+    pass
+</code></pre>
+  </div>
+</div>
+
+  </div>
+  
+            
+  <div class="item">
+    <div class="name def" id="rss2neo.markup_parser.markup_parser.updatepos">
+    <p>def <span class="ident">updatepos</span>(</p><p>self, i, j)</p>
+    </div>
+    
+
+    
+  
+  <div class="source_cont">
+  <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-rss2neo.markup_parser.markup_parser.updatepos', this);">Show source &equiv;</a></p>
+  <div id="source-rss2neo.markup_parser.markup_parser.updatepos" class="source">
+    <pre><code>def updatepos(self, i, j):
+    if i >= j:
+        return j
+    rawdata = self.rawdata
+    nlines = rawdata.count("\n", i, j)
+    if nlines:
+        self.lineno = self.lineno + nlines
+        pos = rawdata.rindex("\n", i, j) # Should not fail
+        self.offset = j-(pos+1)
+    else:
+        self.offset = self.offset + j-i
+    return j
+</code></pre>
+  </div>
+</div>
+
+  </div>
+  
+      </div>
+      </div>
+
+  </section>
+
+    </article>
+  <div class="clear"> </div>
+  <footer id="footer">
+    <p>
+      Documentation generated by
+      <a href="https://github.com/BurntSushi/pdoc">pdoc 0.3.2</a>
+    </p>
+
+    <p>pdoc is in the public domain with the
+      <a href="http://unlicense.org">UNLICENSE</a></p>
+
+    <p>Design by <a href="http://nadh.in">Kailash Nadh</a></p>
+  </footer>
+</div>
+</body>
+</html>

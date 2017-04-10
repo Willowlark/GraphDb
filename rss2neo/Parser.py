@@ -91,7 +91,7 @@ def get_unstructured_topic(extracted, keys=('id', 'title', 'summary'), make_set=
     """
     ret = []
     for key in keys:
-            ret.extend(_parse_topics(extracted[key], debug=debug))
+            ret.extend(_parse_topics(extracted[key]))
     return set(ret) if make_set else ret
 
 def _reconstruct(listing):
