@@ -1,3 +1,13 @@
+"""
+This file stores the static methods to interpret topic candidates from zero or more bodies of text.
+The work that accomplishes this is in the methods parse_topics and parse_topics_not_nouns.
+get_unstructured_topic returns the list of un-structured topics from the given body of text.
+This uses the ne_chunker of the nltk_data package, to filter nouns of importance based on contextual observations.
+get_structured_topic returns the structured topic instances form the body of the text in the rss feed summary.
+is_structured returns a true if input data is structured, else false.
+the subsequent methods are all used in the context of just this file and its aforementioned outward interface. They have each been tailored to usage in this predefined environment.
+"""
+
 from __future__ import division
 
 import os
@@ -7,19 +17,23 @@ import validators
 import nltk
 import json
 import timeit
+import inflect
 from functools import wraps
 from collections import defaultdict
 from markup_parser import markup_parser
-from colors import red, green, blue
-
-DEBUG = False
+import pattern.en
 
 """
-This file stores the static methods to interpret topic candidates from zero or more bodies of text.
-The work that accomplishes this is in the method parse_topics
-Structured_topic returns the structured topic instances form the body of the text in the rss feed summary.
-is_structured returns a true if input data is structured, else false.
+This switch controls printing on debug
 """
+DEBUG = True
+
+"""
+Set the 'infl' var to use a pre-built switch for singularization
+Used to tell if a given noun is singular or not, then pattern.re is used to singularize it
+"""
+infl = inflect.engine()
+# infl = None
 
 class Topic_Candidate(object):
     """
@@ -35,22 +49,28 @@ class Topic_Candidate(object):
     def __str__(self):
         return str(self.title)
 
-    def __init__(self, title, strength=None, label=None, after=None, before=None, suffix=None, prefix=None, depth=None):
-        self.title = title
+    def __init__(self, title, strength=None, label=None, after='', before='', suffix=None, prefix=None, depth=None):
+        self.title = self.normalize_noun(title) if infl else title
         self.strength = strength
         self.label = label
         self.after = after
-        self.before = before
+        self.before = ' '.join(before)
         self.depth = depth
-        self.suffix = suffix
-        self.prefix = prefix
+        self.suffix = suffix.title if suffix else suffix
+        self.prefix = prefix.title if prefix else prefix
 
     def keywordify(self):
-        return {'name': self.title, 'strength': self.strength}
+        return vars(self)
 
     def update_node(self, node):
         node['strength'] = self.strength
         return node
+
+    def normalize_noun(self, title):
+        if infl.singular_noun(title) is False:
+            return title
+        else:
+            return pattern.en.singularize(title)
 
     def __eq__(self, other):
         return self.title == other.title
@@ -62,7 +82,8 @@ class Topic_Candidate(object):
         return hash(self.title)
 
     def append_after(self, word):
-        self.after.append(word)
+        print word, self.after
+        self.after = self.after + ' ' + word
 
 def get_structured_topic(extracted):
     """
@@ -72,6 +93,7 @@ def get_structured_topic(extracted):
     make_set is used to specify whether a set of unique topic candidate instances is formed from the result of the call to _strucutred_topic
 
     `extracted` the json object of the feed being examined
+
     `return` the result of the structured topic investigation.
     """
     body_of_text = extracted['summary']
@@ -84,42 +106,45 @@ def get_unstructured_topic(extracted, keys=('id', 'title', 'summary'), make_set=
     used by external modules to gather the unstructured topics of the summary of the feed json
 
     `extracted` the json object of the feed being examined
+
     `keys` the optional list of args that are the keys of the associative dictionary extracted to have topics extracted
+
     `make_set` optional argument for creating set of unique instances on return
+
     `debug` optional argument for printing state of topic candidates before return
+
     `return` the set of the unique topic candidate instances to be inserted by RssGrapher
     """
     ret = []
     for key in keys:
             ret.extend(_parse_topics(extracted[key]))
-    return set(ret) if make_set else ret
+    return set(ret)
 
 def _reconstruct(listing):
     """
     `Author` Bob S.
 
+    Used extensively for demo and debugging
     reconstruct the context of all topics from return listing alone.
     Requisite: the listing must be a list of topics already ordered by the order that they appear in the body of text where they were found
 
     `listing` the list of ORDERED topic candidate instances being iterated
     """
-
-    # print topics of the NP persuasion
     for topic in sorted(listing, key = lambda k: k.depth): # sort by depth into the doc
-        print green(repr(topic))
-        for var in vars(topic):
+        print repr(topic)
+        for var in topic.keywordify():
             print '\t', var, ":", getattr(topic, var)
-        print '\t', ' '.join(topic.before[-10:]), red(repr(topic)), ' '.join(topic.after[:10])
+        print '\t', topic.before, repr(topic), topic.after
 
-    ret = ''
-    first_topic = listing[0]
-    topic = first_topic
-    ret += blue(' '.join(topic.before))
-    while topic is not None:
-        ret += ' ' + red(str(topic)) + ' ' + blue(' '.join(topic.after))
-        topic = topic.suffix
-    ret += '\n'
-    print ret
+    # ret = ''
+    # first_topic = listing[0]
+    # topic = first_topic
+    # ret += blue(' '.join(topic.before))
+    # while topic is not None:
+    #     ret += ' ' + red(str(topic)) + ' ' + blue(' '.join(topic.after))
+    #     topic = topic.suffix
+    # ret += '\n'
+    # print ret
 
 def _structured_topic(body_of_text, try_markup=False):
     """
@@ -128,7 +153,9 @@ def _structured_topic(body_of_text, try_markup=False):
     This method will render the list of structured topics form the predisposed format of data, a JSON string.
 
     `body_of_text` the string to be parsed from the rss feed
+
     `try_markup` the optional argument to attempt to markup the body of text as json for manipulation
+
     `return` ret, the list of structured topics from the body of text
     """
     if try_markup and not is_structured(body_of_text):
@@ -144,7 +171,9 @@ def _parse_topics(body_of_text):
     The instances of topic candidate that are returned will be used in the database as units for relation creation
 
     `body_of_text` - the raw body of text to be processed
+
     `debug` optional argument for printing state of topic candidates before return
+
     `return` topic candidates - the generated collection of Noun based topics that have been extracted and constructed
     """
     if isinstance(body_of_text, unicode):
@@ -152,7 +181,7 @@ def _parse_topics(body_of_text):
     processed = _info_extract_preprocess(body_of_text)   # preprocessed body for tagged words in sentence form
     return _get_NP_topics(processed)
 
-def _parse_topics_not_nouns(*kargs):
+def _parse_topics_not_nouns(body_of_text):
     """
     `Author` Bob S.
 
@@ -161,13 +190,13 @@ def _parse_topics_not_nouns(*kargs):
     However, only means to yield the non-nouns words of interest
 
     `kargs` - the params (in the form zero or more) raw bodies of text to be processed
+
     `yield` topic candidates - the generated collection of non-Noun topics that have been extracted and constructed
     """
-    ret = []
-    for body_of_text in kargs:
-        processed = _info_extract_preprocess(body_of_text)   # preprocessed body for tagged words in sentence form
-        ret.append(_get_non_NP_topics(processed))
-    return ret
+    if isinstance(body_of_text, unicode):
+        body_of_text = unicodedata.normalize('NFKD', body_of_text).encode('ascii', 'ignore')
+    processed = _info_extract_preprocess(body_of_text)   # preprocessed body for tagged words in sentence form
+    return _get_non_NP_topics(processed)
 
 def is_structured(data):
     """
@@ -178,6 +207,7 @@ def is_structured(data):
     This format is JSON.
 
     `data` the literal string that is passed to be checked
+
     `return` True if the string can be leaded in JSON format, else False
     """
     try:
@@ -195,10 +225,11 @@ def _info_extract_preprocess(document):
     Finally those words are tagged by the default tagger of pos_tagger()
 
     `document` the string form body of text to be pre-processed
+
     `return` tagged - the tokenized, then tagged body of sentence delimited text.
     """
     sentences = nltk.sent_tokenize(document) #tokenize sentence into sentences
-    tokenized = [nltk.word_tokenize(sent) for sent in sentences] # tokenize each sentencs in sentences into tokenized
+    tokenized = [nltk.word_tokenize(sent) for sent in sentences] # tokenize each sentences in sentences into tokenized
     tagged = [nltk.pos_tag(sent) for sent in tokenized] # tag the sentences in tokenized
     return tagged
 
@@ -212,6 +243,7 @@ def _get_NP_topics(tagged):
     Finally the list is returned in one state to be returned to the get_topics method
 
     `tagged` the pre-processed body of text returned form the ie_preprocess() method
+
     `debug` optional argument for printing state of topic candidates before return
     """
     listing = []
@@ -225,7 +257,7 @@ def _get_NP_topics(tagged):
             depth += 1
             if type(word_tag) == nltk.Tree:
                 title = " ".join([title for title, pos in word_tag.leaves()]) # the key word to be used as the likely topic
-                topic = Topic_Candidate(title, depth=depth, prefix=prev_topic, before=before, after=[])
+                topic = Topic_Candidate(title, depth=depth, prefix=prev_topic, before=before)
                 before = []
                 listing.append(topic)
                 counts[title] += 1
@@ -258,10 +290,12 @@ def _get_non_NP_topics(tagged):
     Leverages the concept of grammar parsing (or using a commented out regex parser) to garner verb and adjective topics
 
     `tagged` - the pre-processed, sentence delimited, tokenized, tagged, body of text
+
     `return` labels, counts - the affiliated labels and count of appearances for likely topics
     """
     labels = defaultdict(set) # the dictionary of labels whose values are associated sets of topics
     counts =  defaultdict(int)  # the dictionary of topics whose value is the count of appearances in the entire body of text
+    ret = []
 
     grammar = r"""
       NP: {<DT|JJ|NN.*>+}          # Chunk sequences of DT, JJ, NN
@@ -273,8 +307,7 @@ def _get_non_NP_topics(tagged):
 
     """
     An alternative to pre-def grammar features chunking and chinking rules.
-    This method failed to provide an increase in accuracy but will remain for posterity.
-
+    This method failed to provide an increase in accuracy but has remained for posterity.
     >>> chunk_rule = ChunkRule("<.*>+", "Chunk everything")
     >>> chink_rule = ChinkRule("<VB\.>", "Chink on verbs/prepositions")
     >>> split_rule = SplitRule("<NN><VB>", "<DT><NN>",
@@ -284,7 +317,7 @@ def _get_non_NP_topics(tagged):
 
     for sentence in tagged:
         """
-        line used in tandem with the alt chunker seen above
+        this line used in tandem with the alt chunker (chunk_parser) seen above
 
         >>> chunked = chunk_parser.parse(sentence)
         """
@@ -297,7 +330,8 @@ def _get_non_NP_topics(tagged):
     for label in labels.keys():
             for title in labels[label]:
                 strength = counts[title]
-                yield Topic_Candidate(title=title, strength=strength, label=label)
+                ret.append(Topic_Candidate(title=title, strength=strength, label=label))
+    return ret
 
 def _timer(function):
     """ easy wrapper class for determining runtime of wrapped method"""
@@ -308,7 +342,7 @@ def _timer(function):
         result = function(*args, **kwargs)
         t1 = timeit.default_timer()
         diff = t1 - t0
-        phrase = " Total time running '%s': %s seconds " %(red(function.func_name), green(str(diff)))
+        phrase = " Total time running '%s': %s seconds " %(function.func_name, str(diff))
         print '\n{:*^150}\n'.format(phrase)
         return result, diff
     return func_timer
@@ -363,6 +397,20 @@ def main():
     return get_unstructured_topic(extracted, keys=['summary'])
     # return _parse_topics_not_nouns(body)
 
+@_timer
+def non_noun_main(make_set=True):
+    """----demo usage in context----"""
+
+    link = 'http://www.foxnews.com/us/2017/02/10/marine-vet-speaks-out-about-viral-video-supporting-trump-travel-ban.html'
+    body =_process_input(link)
+    extracted = {'summary': body, 'link': link}
+    ret = []
+    for key in extracted.keys():
+            ret.extend(_parse_topics_not_nouns(extracted[key]))
+    print ret
+    s = set(ret) if make_set else ret
+    return s, extracted['link']
+
 
 """Code to assign working path of nltk_data resource to local copy, if one exists else tell user to download"""
 try:
@@ -379,28 +427,17 @@ except LookupError as e:
 if DEBUG:
     print "Using path(s) to nltk resources:", nltk.data.path
 
+
 if __name__ == '__main__':
+
+    """ Alt main to test non-noun word extraction"""
+    # results = non_noun_main()[0]
     results = main()[0]
     if DEBUG:
-        print 'results:', green(str(results[0]))
-        print 'link:', green(results[1])
+        print 'results:', str(results[0])
+        print 'link:', results[1]
+
+        for res in results[0]:
+            print res.keywordify()
+
     sys.exit(0)
-
-
-"""
-Used only for investigation of lemmatization.
-Remnants kept in case it can be found useful.
-
-def lemmatize_investigate():
-    body = _process_input('http://www.foxnews.com/politics/2017/02/08/white-house-fires-back-at-immigration-order-critics-with-list-terror-arrests.html')
-    tokenized = nltk.word_tokenize(body)
-    tagged = nltk.pos_tag(tokenized)
-    gen = generate_frequency_by_pos(tagged=tagged, pos=('JJ', 'VB'))
-    from nltk.stem import WordNetLemmatizer
-    wordnet_lemmatizer = WordNetLemmatizer()
-    for elem in gen:
-        print elem[0],
-        for title, strength in elem[1]:
-            print title, wordnet_lemmatizer.lemmatize(title), ',',
-        print
-"""
