@@ -192,8 +192,20 @@ class Recorder:
             print subgraph
             if raw_input("Confirm with y: ") != "y":
                 return -1
+        self._scrub_topics(subgraph)
         self.graph.push(subgraph)
         self.graph.create(subgraph)
+
+    def _scrub_topics(self, subgraph):
+        approved = ['timestamp', 'title']
+        for node in subgraph.nodes():
+            title = node['title']
+            timestamp = node['timestamp']
+            node.clear()
+            node['title'] = title
+            node['timestamp'] = timestamp
+
+
 
 if __name__ == "__main__":
     rec = Recorder()
