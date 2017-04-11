@@ -11,17 +11,22 @@ the subsequent methods are all used in the context of just this file and its afo
 from __future__ import division
 
 import os
-import unicodedata
 import sys
-import validators
-import nltk
-import json
-import timeit
-import inflect
+import pip
 from functools import wraps
 from collections import defaultdict
 from markup_parser import markup_parser
-import pattern.en
+
+"""Import statements will fail when not pipped in, so pip them to be up to date"""
+libnames = ['unicodedata', 'validators', 'nltk', 'json', 'timeit', 'inflect', 'Pattern']
+for libname in libnames:
+    try:
+        lib = __import__(libname)
+    except:
+        print sys.exc_info()
+        pip.main(['install', libname])
+    else:
+        globals()[libname] = lib
 
 """
 This switch controls printing on debug
@@ -70,6 +75,7 @@ class Topic_Candidate(object):
         if infl.singular_noun(title) is False:
             return title
         else:
+            import pattern.en
             return pattern.en.singularize(title)
 
     def __eq__(self, other):
