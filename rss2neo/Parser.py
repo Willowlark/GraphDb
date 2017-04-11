@@ -11,17 +11,22 @@ the subsequent methods are all used in the context of just this file and its afo
 from __future__ import division
 
 import os
-import unicodedata
 import sys
-import validators
-import nltk
-import json
-import timeit
-import inflect
+import pip
 from functools import wraps
 from collections import defaultdict
 from markup_parser import markup_parser
-import pattern.en
+
+"""Import statements will fail when not pipped in, so pip them to be up to date"""
+libnames = ['unicodedata', 'validators', 'nltk', 'json', 'timeit', 'inflect', 'Pattern']
+for libname in libnames:
+    try:
+        lib = __import__(libname)
+    except:
+        print sys.exc_info()
+        pip.main(['install', libname])
+    else:
+        globals()[libname] = lib
 
 """
 This switch controls printing on debug
@@ -94,6 +99,7 @@ class Topic_Candidate(object):
         if infl.singular_noun(title) is False:
             return title
         else:
+            import pattern.en
             return pattern.en.singularize(title)
 
     def __eq__(self, other):
@@ -106,7 +112,6 @@ class Topic_Candidate(object):
         return hash(self.title)
 
     def append_after(self, word):
-        # print word, self.after
         self.after = self.after + ' ' + word
 
 def get_structured_topic(extracted):
@@ -155,7 +160,7 @@ def _reconstruct(listing):
     `listing` the list of ORDERED topic candidate instances being iterated
     """
     for topic in sorted(listing, key = lambda k: k.depth): # sort by depth into the doc
-        #print repr(topic)
+        print repr(topic)
         for var in topic.keywordify():
             print '\t', var, ":", getattr(topic, var)
         print '\t', topic.before, repr(topic), topic.after
@@ -367,7 +372,7 @@ def _timer(function):
         t1 = timeit.default_timer()
         diff = t1 - t0
         phrase = " Total time running '%s': %s seconds " %(function.func_name, str(diff))
-        #print '\n{:*^150}\n'.format(phrase)
+        print '\n{:*^150}\n'.format(phrase)
         return result, diff
     return func_timer
 
