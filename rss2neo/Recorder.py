@@ -66,7 +66,8 @@ class Recorder:
         """
         listing = []
         for topic in topic_candidates:
-            n = Node("Topic", **topic.keywordify())
+            n = Node("Topic", title=topic.title)
+            topic.update_node(n)
             if self.immediate_mode: self.graph.create(n)
             listing.append(n)
         return self._subgraphify(listing)
@@ -84,7 +85,7 @@ class Recorder:
         """
         listing = []
         for topic in topic_candidates:
-            match = self.graph.find_one("Topic", property_key='name', property_value=topic.title)
+            match = self.graph.find_one("Topic", property_key='title', property_value=topic.title)
             if not match: return False # Not in the DB
             listing.append(topic.update_node(match))
         return self._subgraphify(listing)
@@ -172,8 +173,7 @@ class Recorder:
         """
         listing = []
         for node in topic_subgraph.nodes():
-            listing.append(Relationship(record_node, 'Related', node, weight=node['strength']))
-            del node['strength']  # We use the node to carry the weight, not store it.
+            listing.append(Relationship(record_node, 'Related', node, **node))
         return self._subgraphify(listing) | record_node
 
     def push(self, subgraph):
@@ -200,10 +200,10 @@ class Recorder:
         approved = ['timestamp', 'title']
         for node in subgraph.nodes():
             title = node['title']
-            timestamp = node['timestamp']
+            #timestamp = node['timestamp']
             node.clear()
             node['title'] = title
-            node['timestamp'] = timestamp
+            #node['timestamp'] = timestamp
 
 
 
