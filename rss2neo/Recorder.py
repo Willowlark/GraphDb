@@ -58,9 +58,10 @@ class Recorder:
 
         Adds a list of topics to the graph as new nodes. This doesn't check if the node
         already exists; use get_or_add_topics for that. The nodes are returned regardless,
-        but are only pushed if immediate_mode is off.
+        but are only pushed if immediate_mode is off. This topic object carries information with it
+        to be placed on the relationship at a later time.
 
-        `topics`: A list of string Topics to be added. The string value will be the name
+        `topic_candidates`: A list of string Topics to be added. The string value will be the name
         property of the node, while the label will be Topic.
 
         `return`: a subgraph containing all the new nodes.
@@ -78,7 +79,8 @@ class Recorder:
         `Author`: Bill Clark
 
         Retrieves topics from the graph. Assumes the topics are in the graph, use has_topic
-        beforehand. Takes the first found instance, but names should be singleton anyway.
+        beforehand. Takes the first found instance, but names should be singleton anyway. This topic object carries 
+        information with it to be placed on the relationship at a later time.
 
         `topic_candidates`: List of string topic names to retrieve.
 
@@ -162,8 +164,8 @@ class Recorder:
         """
         `Author`: Bill Clark
 
-        Takes a subgraph of topics and relates them to a singular record. Will be
-        modified, eventually.
+        Takes a subgraph of topics and relates them to a singular record. This relationship also takes the properties
+        set on the offline topic node instance and copies them to itself. This skips the title property. 
 
         `topic_subgraph`: A subgraph containing topic nodes to be related to the record.
 
@@ -201,14 +203,20 @@ class Recorder:
         self.graph.create(subgraph)
 
     def _scrub_topics(self, subgraph):
-        approved = ['timestamp', 'title']
+        """
+        `Author`: Bill Clark 
+        
+        Removes all instance data that was carried on the node and leaves only the title and timestamp. We attach
+        data to the offline node instance we don't want to push up to the db. Here we simply clear it out. 
+        
+        `subgraph`: subgraph of nodes to have their data scrubbed.  
+        """
         for node in subgraph.nodes():
             title = node['title']
             timestamp = node['timestamp']
             node.clear()
             node['title'] = title
             node['timestamp'] = timestamp
-
 
 
 if __name__ == "__main__":

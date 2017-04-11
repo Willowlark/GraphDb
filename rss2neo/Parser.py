@@ -40,7 +40,8 @@ class Topic_Candidate(object):
     `Author`: Bill Clark
     A class created by the Parser to represent a Topic object in the graph, in relation
     to the given record. The metadata then, is strictly tied to the record used when
-    creating the candidate.
+    creating the candidate. The candidate data does not all go onto the Topic object, the candidate carries
+    properties that will be later copied to the relationship between this topic and the record. 
     """
 
     def __repr__(self):
@@ -60,8 +61,27 @@ class Topic_Candidate(object):
         self.prefix = prefix.title if suffix is not '' else ''
 
     def keywordify(self):
+        """
+        `Author`: Bill Clark
+        
+        Returns a dictonary of the properties of the candidate. Used for compatibility in other methods.
+        
+        `return`: Dictonary of this candidate's properties. 
+        """
         return self.__dict__
+
     def update_properties(self, node):
+        """
+        `Author`: Bill Clark
+        
+        Here we take a Topic node object and apply the properties in the candidate to it. We either update the 
+        value or add it to the Topic node. This allows for running totals like strength as well as adding the 
+        properties in the candidate that will be copied to the relationship later. 
+        
+        `node`: A topic node object
+         
+        `return`: The modified node. 
+        """
         for key in self.__dict__:
             if self.__dict__[key] == self.title:
                 pass
