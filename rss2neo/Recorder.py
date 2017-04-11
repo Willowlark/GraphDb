@@ -31,6 +31,7 @@ class Recorder:
         `Author`: Bill Clark
 
         Connects to a graph for operations. Required before anything else.
+        ToDo: Something with authentication
 
         `graph_address`: web address of neo4j instance.
         """
@@ -57,16 +58,18 @@ class Recorder:
 
         Adds a list of topics to the graph as new nodes. This doesn't check if the node
         already exists; use get_or_add_topics for that. The nodes are returned regardless,
-        but are only pushed if immediate_mode is off.
+        but are only pushed if immediate_mode is off. This topic object carries information with it
+        to be placed on the relationship at a later time.
 
-        `topics`: A list of string Topics to be added. The string value will be the name
+        `topic_candidates`: A list of string Topics to be added. The string value will be the name
         property of the node, while the label will be Topic.
 
         `return`: a subgraph containing all the new nodes.
         """
         listing = []
         for topic in topic_candidates:
-            n = Node("Topic", **topic.keywordify())
+            n = Node("Topic", title=topic.title)
+            topic.update_properties(n)
             if self.immediate_mode: self.graph.create(n)
             listing.append(n)
         return self._subgraphify(listing)
@@ -76,7 +79,8 @@ class Recorder:
         `Author`: Bill Clark
 
         Retrieves topics from the graph. Assumes the topics are in the graph, use has_topic
-        beforehand. Takes the first found instance, but names should be singleton anyway.
+        beforehand. Takes the first found instance, but names should be singleton anyway. This topic object carries 
+        information with it to be placed on the relationship at a later time.
 
         `topic_candidates`: List of string topic names to retrieve.
 
@@ -84,9 +88,9 @@ class Recorder:
         """
         listing = []
         for topic in topic_candidates:
-            match = self.graph.find_one("Topic", property_key='name', property_value=topic.title)
+            match = self.graph.find_one("Topic", property_key='title', property_value=topic.title)
             if not match: return False # Not in the DB
-            listing.append(topic.update_node(match))
+            listing.append(topic.update_properties(match))
         return self._subgraphify(listing)
 
     def get_or_add_topics(self, topic_candidates):
@@ -160,8 +164,8 @@ class Recorder:
         """
         `Author`: Bill Clark
 
-        Takes a subgraph of topics and relates them to a singular record. Will be
-        modified, eventually.
+        Takes a subgraph of topics and relates them to a singular record. This relationship also takes the properties
+        set on the offline topic node instance and copies them to itself. This skips the title property. 
 
         `topic_subgraph`: A subgraph containing topic nodes to be related to the record.
 
@@ -172,8 +176,10 @@ class Recorder:
         """
         listing = []
         for node in topic_subgraph.nodes():
-            listing.append(Relationship(record_node, 'Related', node, weight=node['strength']))
-            del node['strength']  # We use the node to carry the weight, not store it.
+            r = Relationship(record_node, 'Related', node)
+            for key in node:
+                if key != 'title': r[key] = node[key]
+            listing.append(r)
         return self._subgraphify(listing) | record_node
 
     def push(self, subgraph):
@@ -192,8 +198,26 @@ class Recorder:
             print subgraph
             if raw_input("Confirm with y: ") != "y":
                 return -1
+        self._scrub_topics(subgraph)
         self.graph.push(subgraph)
         self.graph.create(subgraph)
+
+    def _scrub_topics(self, subgraph):
+        """
+        `Author`: Bill Clark 
+        
+        Removes all instance data that was carried on the node and leaves only the title and timestamp. We attach
+        data to the offline node instance we don't want to push up to the db. Here we simply clear it out. 
+        
+        `subgraph`: subgraph of nodes to have their data scrubbed.  
+        """
+        for node in subgraph.nodes():
+            title = node['title']
+            timestamp = node['timestamp']
+            node.clear()
+            node['title'] = title
+            node['timestamp'] = timestamp
+
 
 if __name__ == "__main__":
     rec = Recorder()

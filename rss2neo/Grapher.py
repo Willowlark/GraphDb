@@ -35,12 +35,11 @@ def post_60(graphAddress, path):
 
     recorder = Recorder()
     recorder.initialize(graphAddress)
-    feeder = RssFeeder.Feeder(path)
-
+    feeder = RssFeeder.RssFeeder(path)
     while True:
 
-        feeds = feeder.load_feeds()
-        for feed in feeds:
+        feeder.fetch()
+        for feed in feeder.feeds():
             extracted = feed.extract()
             record_value = feed.record_content()
 

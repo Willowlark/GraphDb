@@ -40,7 +40,8 @@ class Topic_Candidate(object):
     `Author`: Bill Clark
     A class created by the Parser to represent a Topic object in the graph, in relation
     to the given record. The metadata then, is strictly tied to the record used when
-    creating the candidate.
+    creating the candidate. The candidate data does not all go onto the Topic object, the candidate carries
+    properties that will be later copied to the relationship between this topic and the record. 
     """
 
     def __repr__(self):
@@ -49,21 +50,44 @@ class Topic_Candidate(object):
     def __str__(self):
         return str(self.title)
 
-    def __init__(self, title, strength=None, label=None, after='', before='', suffix=None, prefix=None, depth=None):
+    def __init__(self, title, strength=0, label=None, after='', before='', suffix='', prefix='', depth=0):
         self.title = self.normalize_noun(title) if infl else title
         self.strength = strength
         self.label = label
         self.after = after
         self.before = ' '.join(before)
         self.depth = depth
-        self.suffix = suffix.title if suffix else suffix
-        self.prefix = prefix.title if prefix else prefix
+        self.suffix = suffix.title if suffix is not '' else ''
+        self.prefix = prefix.title if suffix is not '' else ''
 
     def keywordify(self):
-        return vars(self)
+        """
+        `Author`: Bill Clark
+        
+        Returns a dictonary of the properties of the candidate. Used for compatibility in other methods.
+        
+        `return`: Dictonary of this candidate's properties. 
+        """
+        return self.__dict__
 
-    def update_node(self, node):
-        node['strength'] = self.strength
+    def update_properties(self, node):
+        """
+        `Author`: Bill Clark
+        
+        Here we take a Topic node object and apply the properties in the candidate to it. We either update the 
+        value or add it to the Topic node. This allows for running totals like strength as well as adding the 
+        properties in the candidate that will be copied to the relationship later. 
+        
+        `node`: A topic node object
+         
+        `return`: The modified node. 
+        """
+        for key in self.__dict__:
+            if self.__dict__[key] == self.title:
+                pass
+            elif node[key] is not None and type(node[key]) is not str:
+                node[key] += self.__dict__[key]
+            else: node[key] = self.__dict__[key]
         return node
 
     def normalize_noun(self, title):
@@ -82,7 +106,7 @@ class Topic_Candidate(object):
         return hash(self.title)
 
     def append_after(self, word):
-        print word, self.after
+        # print word, self.after
         self.after = self.after + ' ' + word
 
 def get_structured_topic(extracted):
@@ -131,7 +155,7 @@ def _reconstruct(listing):
     `listing` the list of ORDERED topic candidate instances being iterated
     """
     for topic in sorted(listing, key = lambda k: k.depth): # sort by depth into the doc
-        print repr(topic)
+        #print repr(topic)
         for var in topic.keywordify():
             print '\t', var, ":", getattr(topic, var)
         print '\t', topic.before, repr(topic), topic.after
@@ -262,7 +286,7 @@ def _get_NP_topics(tagged):
                 listing.append(topic)
                 counts[title] += 1
                 if prev_topic is not None:
-                    prev_topic.suffix = topic
+                    prev_topic.suffix = topic.title
                 prev_topic = topic
             else:
                 word, pos = word_tag
@@ -343,7 +367,7 @@ def _timer(function):
         t1 = timeit.default_timer()
         diff = t1 - t0
         phrase = " Total time running '%s': %s seconds " %(function.func_name, str(diff))
-        print '\n{:*^150}\n'.format(phrase)
+        #print '\n{:*^150}\n'.format(phrase)
         return result, diff
     return func_timer
 
