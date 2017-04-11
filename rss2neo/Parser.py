@@ -88,7 +88,6 @@ class Topic_Candidate(object):
         return hash(self.title)
 
     def append_after(self, word):
-        print word, self.after
         self.after = self.after + ' ' + word
 
 def get_structured_topic(extracted):
