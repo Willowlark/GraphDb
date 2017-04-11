@@ -49,7 +49,7 @@ class Topic_Candidate(object):
     def __str__(self):
         return str(self.title)
 
-    def __init__(self, title, strength=None, label=None, after='', before='', suffix='', prefix='', depth=None):
+    def __init__(self, title, strength=0, label=None, after='', before='', suffix='', prefix='', depth=0):
         self.title = self.normalize_noun(title) if infl else title
         self.strength = strength
         self.label = label
@@ -61,11 +61,11 @@ class Topic_Candidate(object):
 
     def keywordify(self):
         return self.__dict__
-    def update_node(self, node):
+    def update_properties(self, node):
         for key in self.__dict__:
             if self.__dict__[key] == self.title:
                 pass
-            elif node[key] is not None:
+            elif node[key] is not None and type(node[key]) is not str:
                 node[key] += self.__dict__[key]
             else: node[key] = self.__dict__[key]
         return node
@@ -86,7 +86,7 @@ class Topic_Candidate(object):
         return hash(self.title)
 
     def append_after(self, word):
-        print word, self.after
+        # print word, self.after
         self.after = self.after + ' ' + word
 
 def get_structured_topic(extracted):
@@ -135,7 +135,7 @@ def _reconstruct(listing):
     `listing` the list of ORDERED topic candidate instances being iterated
     """
     for topic in sorted(listing, key = lambda k: k.depth): # sort by depth into the doc
-        print repr(topic)
+        #print repr(topic)
         for var in topic.keywordify():
             print '\t', var, ":", getattr(topic, var)
         print '\t', topic.before, repr(topic), topic.after
@@ -347,7 +347,7 @@ def _timer(function):
         t1 = timeit.default_timer()
         diff = t1 - t0
         phrase = " Total time running '%s': %s seconds " %(function.func_name, str(diff))
-        print '\n{:*^150}\n'.format(phrase)
+        #print '\n{:*^150}\n'.format(phrase)
         return result, diff
     return func_timer
 

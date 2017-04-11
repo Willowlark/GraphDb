@@ -31,6 +31,7 @@ class Recorder:
         `Author`: Bill Clark
 
         Connects to a graph for operations. Required before anything else.
+        ToDo: Something with authentication
 
         `graph_address`: web address of neo4j instance.
         """
@@ -67,7 +68,7 @@ class Recorder:
         listing = []
         for topic in topic_candidates:
             n = Node("Topic", title=topic.title)
-            topic.update_node(n)
+            topic.update_properties(n)
             if self.immediate_mode: self.graph.create(n)
             listing.append(n)
         return self._subgraphify(listing)
@@ -87,7 +88,7 @@ class Recorder:
         for topic in topic_candidates:
             match = self.graph.find_one("Topic", property_key='title', property_value=topic.title)
             if not match: return False # Not in the DB
-            listing.append(topic.update_node(match))
+            listing.append(topic.update_properties(match))
         return self._subgraphify(listing)
 
     def get_or_add_topics(self, topic_candidates):
@@ -173,7 +174,10 @@ class Recorder:
         """
         listing = []
         for node in topic_subgraph.nodes():
-            listing.append(Relationship(record_node, 'Related', node, **node))
+            r = Relationship(record_node, 'Related', node)
+            for key in node:
+                if key != 'title': r[key] = node[key]
+            listing.append(r)
         return self._subgraphify(listing) | record_node
 
     def push(self, subgraph):
@@ -200,10 +204,10 @@ class Recorder:
         approved = ['timestamp', 'title']
         for node in subgraph.nodes():
             title = node['title']
-            #timestamp = node['timestamp']
+            timestamp = node['timestamp']
             node.clear()
             node['title'] = title
-            #node['timestamp'] = timestamp
+            node['timestamp'] = timestamp
 
 
 
