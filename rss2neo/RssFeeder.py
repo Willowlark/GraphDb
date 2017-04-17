@@ -4,13 +4,17 @@ import sys
 
 
 class Feed:
-    # * Created by Eliakah kakou
-    # Feed.py
-    # This class allows for more functionality in regards
-    # to the dictionary entered in the constructor
+    """
+    `Author`: Eliakah kakou
+    This class allows for more functionality in regards
+    to the dictionary entered in the constructor
+    """
 
     # constructor
     def __init__(self, feed):
+        """
+         constructor
+        """
         self.feed = feed
 
     # This method returns a subset of the dictionary
@@ -66,20 +70,36 @@ class Feeder:
 
 
 class RssFeeder(Feeder):
-    # * Created by Eliakah kakou
-    # RssFeeder.py
-    # This class gets an RSS feed and manipulates
-    # the data based on the url entered
+    """ 
+        `Author`: Eliakah kakou
+        RssFeeder.py
+        This class generates a list of feed instances containing relevant data about the file 
+       """
 
-    # constructor
     def __init__(self, file):
+        """
+        The constructor, initializes the RssFeeded instance 
+        :param file: path to file containing list of links 
+        """
+        Feeder.__init__(self, file)
         self.feeds = []
         self.links = []
-        self.getLinks(file)
-        for i in range(len(self.links)):
-            self.feeds.extend(self.getFeeds(self.links[i]))
+        self.path = file
+        self.__getLinks(file)
 
-    def getLinks(self, file):
+    def load_feeds(self):
+        """
+            returns 'feeds' which contains all of the feed instances 
+            :return: self.feeds
+        """
+        self.fetch()
+        return self.feeds
+
+    def __getLinks(self, file):
+        """
+        This method inserts each link from the file as an entry into the 'links' list 
+        :param file:path to file containing list of links 
+        """
         input_file = open(file)
         try:
             for i, line in enumerate(input_file):
@@ -88,14 +108,20 @@ class RssFeeder(Feeder):
         finally:
             input_file.close()
 
-            # loadFeeds
+    def fetch(self):
+        """
+        This method appends all of the feed instances to 'feeds'
+        :return: none
+        """
+        for i in range(len(self.links)):
+            self.feeds.extend(self.__getFeeds(self.links[i]))
 
-    def load_feeds(self):
-        return self.feeds
-
-    # change Url
-    def getFeeds(self, url):
-        feeds = []
+    def __getFeeds(self, url):
+        """
+                This method generates a Feed instance from the url given
+               :param file: full file path
+               :return: Feed generated from file
+               """
         flag = validators.url(url)
         if flag:
             feeds = feedparser.parse(url)
