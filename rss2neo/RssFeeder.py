@@ -4,17 +4,13 @@ import sys
 
 
 class Feed:
-    """
-    `Author`: Eliakah kakou
-    This class allows for more functionality in regards
-    to the dictionary entered in the constructor
-    """
+    # * Created by Eliakah kakou
+    # Feed.py
+    # This class allows for more functionality in regards
+    # to the dictionary entered in the constructor
 
     # constructor
     def __init__(self, feed):
-        """
-         constructor
-        """
         self.feed = feed
 
     # This method returns a subset of the dictionary
@@ -24,28 +20,26 @@ class Feed:
     def record_content(self):
         return self.feed['link']
 
-
 class Feeder:
     """
     `Author`: Bill Clark
-
+    
     An interface to fulfill a strategy pattern design in the Grapher with feeders.
     An implementation of this interface will be usable with the Grapher so long as
     it provides the appropriate returns. 
-
+    
     Feeder instances should be created with a link to some sort of file. The result
     to come out of it's methods will be used by the Parser Module to generate topics
     about the information in the Feed. A Feed represents a single article of related
     data. The implementation should generate Feed objects as defined above in order
     to be encapsulated. 
     """
-
     def __init__(self, file):
         """
         A feeder should be initialized to read from it's source when commanded to
         via the load_feeds method. Feeds is a list of Feed objects specifically, 
         and is interacted with in the feeds generator call. 
-
+        
         `file`: The file to process later. 
         """
         self.feeds = []
@@ -57,7 +51,7 @@ class Feeder:
         """
         for feed in self.feeds:
             yield feed
-            # feeds = []
+        #feeds = []
 
     def fetch(self):
         """
@@ -70,36 +64,20 @@ class Feeder:
 
 
 class RssFeeder(Feeder):
-    """ 
-        `Author`: Eliakah kakou
-        RssFeeder.py
-        This class generates a list of feed instances containing relevant data about the file 
-       """
+    # * Created by Eliakah kakou
+    # RssFeeder.py
+    # This class gets an RSS feed and manipulates
+    # the data based on the url entered
 
+    # constructor
     def __init__(self, file):
-        """
-        The constructor, initializes the RssFeeded instance 
-        :param file: path to file containing list of links 
-        """
-        Feeder.__init__(self, file)
         self.feeds = []
         self.links = []
-        self.path = file
-        self.__getLinks(file)
+        self.getLinks(file)
+        for i in range(len(self.links)):
+            self.feeds.extend(self.getFeeds(self.links[i]))
 
-    def load_feeds(self):
-        """
-            returns 'feeds' which contains all of the feed instances 
-            :return: self.feeds
-        """
-        self.fetch()
-        return self.feeds
-
-    def __getLinks(self, file):
-        """
-        This method inserts each link from the file as an entry into the 'links' list 
-        :param file:path to file containing list of links 
-        """
+    def getLinks(self, file):
         input_file = open(file)
         try:
             for i, line in enumerate(input_file):
@@ -108,20 +86,13 @@ class RssFeeder(Feeder):
         finally:
             input_file.close()
 
-    def fetch(self):
-        """
-        This method appends all of the feed instances to 'feeds'
-        :return: none
-        """
-        for i in range(len(self.links)):
-            self.feeds.extend(self.__getFeeds(self.links[i]))
+        # loadFeeds
+    def load_feeds(self):
+        return self.feeds
 
-    def __getFeeds(self, url):
-        """
-                This method generates a Feed instance from the url given
-               :param file: full file path
-               :return: Feed generated from file
-               """
+    # change Url
+    def getFeeds(self, url):
+        feeds = []
         flag = validators.url(url)
         if flag:
             feeds = feedparser.parse(url)
