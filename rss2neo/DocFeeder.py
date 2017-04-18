@@ -1,4 +1,4 @@
-import fnmatch
+import fnmatch, platform, time, pprint
 import os
 from RssFeeder import Feeder, Feed
 
@@ -90,9 +90,24 @@ class DocFeeder(Feeder):
         finally:
             input_file.close()
 
-        f = {'id': file, 'title': title, 'link': file, 'summary': content}
+        stamp = time.ctime(self.__creation_date(file))
+
+        f = {'id': file, 'published': stamp, 'title': title, 'link': file, 'summary': content}
         f = Feed(f)
         return f
+
+    def __creation_date(self, file):
+        """
+    ...
+        """
+        if platform.system() == 'Windows':
+            return os.path.getctime(file)
+        else:
+            stat = os.stat(file)
+            try:
+                return stat.st_birthtime
+            except AttributeError:
+                return stat.st_mtime
 
 
 if __name__ == "__main__":
@@ -100,4 +115,4 @@ if __name__ == "__main__":
     feeds = feeder.load_feeds()
 
     for i in range(len(feeds)):
-        print  feeds[i].extract()
+        pprint.pprint(feeds[i].extract())

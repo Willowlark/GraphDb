@@ -1,6 +1,6 @@
 import feedparser
 import validators
-import sys
+import sys, pprint
 
 
 class Feed:
@@ -19,7 +19,7 @@ class Feed:
 
     # This method returns a subset of the dictionary
     def extract(self):
-        return {k: self.feed[k] for k in ('id', 'title', 'link', 'summary')}
+        return {k: self.feed[k] for k in ('id', 'published', 'title', 'link', 'summary')}
 
     def record_content(self):
         return self.feed['link']
@@ -137,8 +137,9 @@ class RssFeeder(Feeder):
 
 
 if __name__ == "__main__":
-    feeder = Feeder('links.txt')
-    feeds = feeder.load_feeds()
+    feeder = RssFeeder('links.txt')
+    feeder.fetch()
+    feeds = feeder.feeds
 
     for i in range(len(feeds)):
-        print  feeds[i].extract()
+        pprint.pprint(feeds[i].extract())
