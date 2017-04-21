@@ -1043,6 +1043,7 @@ class Recorder:
         `Author`: Bill Clark
 
         Connects to a graph for operations. Required before anything else.
+        ToDo: Something with authentication
 
         `graph_address`: web address of neo4j instance.
         """
@@ -1069,16 +1070,18 @@ class Recorder:
 
         Adds a list of topics to the graph as new nodes. This doesn't check if the node
         already exists; use get_or_add_topics for that. The nodes are returned regardless,
-        but are only pushed if immediate_mode is off.
+        but are only pushed if immediate_mode is off. This topic object carries information with it
+        to be placed on the relationship at a later time.
 
-        `topics`: A list of string Topics to be added. The string value will be the name
+        `topic_candidates`: A list of string Topics to be added. The string value will be the name
         property of the node, while the label will be Topic.
 
         `return`: a subgraph containing all the new nodes.
         """
         listing = []
         for topic in topic_candidates:
-            n = Node("Topic", **topic.keywordify())
+            n = Node("Topic", title=topic.title)
+            topic.update_properties(n)
             if self.immediate_mode: self.graph.create(n)
             listing.append(n)
         return self._subgraphify(listing)
@@ -1088,7 +1091,8 @@ class Recorder:
         `Author`: Bill Clark
 
         Retrieves topics from the graph. Assumes the topics are in the graph, use has_topic
-        beforehand. Takes the first found instance, but names should be singleton anyway.
+        beforehand. Takes the first found instance, but names should be singleton anyway. This topic object carries 
+        information with it to be placed on the relationship at a later time.
 
         `topic_candidates`: List of string topic names to retrieve.
 
@@ -1096,9 +1100,9 @@ class Recorder:
         """
         listing = []
         for topic in topic_candidates:
-            match = self.graph.find_one("Topic", property_key='name', property_value=topic.title)
+            match = self.graph.find_one("Topic", property_key='title', property_value=topic.title)
             if not match: return False # Not in the DB
-            listing.append(topic.update_node(match))
+            listing.append(topic.update_properties(match))
         return self._subgraphify(listing)
 
     def get_or_add_topics(self, topic_candidates):
@@ -1172,8 +1176,8 @@ class Recorder:
         """
         `Author`: Bill Clark
 
-        Takes a subgraph of topics and relates them to a singular record. Will be
-        modified, eventually.
+        Takes a subgraph of topics and relates them to a singular record. This relationship also takes the properties
+        set on the offline topic node instance and copies them to itself. This skips the title property. 
 
         `topic_subgraph`: A subgraph containing topic nodes to be related to the record.
 
@@ -1184,8 +1188,10 @@ class Recorder:
         """
         listing = []
         for node in topic_subgraph.nodes():
-            listing.append(Relationship(record_node, 'Related', node, weight=node['strength']))
-            del node['strength']  # We use the node to carry the weight, not store it.
+            r = Relationship(record_node, 'Related', node)
+            for key in node:
+                if key != 'title': r[key] = node[key]
+            listing.append(r)
         return self._subgraphify(listing) | record_node
 
     def push(self, subgraph):
@@ -1204,8 +1210,26 @@ class Recorder:
             print subgraph
             if raw_input("Confirm with y: ") != "y":
                 return -1
+        self._scrub_topics(subgraph)
         self.graph.push(subgraph)
         self.graph.create(subgraph)
+
+    def _scrub_topics(self, subgraph):
+        """
+        `Author`: Bill Clark 
+        
+        Removes all instance data that was carried on the node and leaves only the title and timestamp. We attach
+        data to the offline node instance we don't want to push up to the db. Here we simply clear it out. 
+        
+        `subgraph`: subgraph of nodes to have their data scrubbed.  
+        """
+        for node in subgraph.nodes():
+            title = node['title']
+            timestamp = node['timestamp']
+            node.clear()
+            node['title'] = title
+            node['timestamp'] = timestamp
+
 
 if __name__ == "__main__":
     rec = Recorder()
@@ -1256,6 +1280,7 @@ input for push operation. For safety mostly, unlikely needed.</p></div>
         `Author`: Bill Clark
 
         Connects to a graph for operations. Required before anything else.
+        ToDo: Something with authentication
 
         `graph_address`: web address of neo4j instance.
         """
@@ -1282,16 +1307,18 @@ input for push operation. For safety mostly, unlikely needed.</p></div>
 
         Adds a list of topics to the graph as new nodes. This doesn't check if the node
         already exists; use get_or_add_topics for that. The nodes are returned regardless,
-        but are only pushed if immediate_mode is off.
+        but are only pushed if immediate_mode is off. This topic object carries information with it
+        to be placed on the relationship at a later time.
 
-        `topics`: A list of string Topics to be added. The string value will be the name
+        `topic_candidates`: A list of string Topics to be added. The string value will be the name
         property of the node, while the label will be Topic.
 
         `return`: a subgraph containing all the new nodes.
         """
         listing = []
         for topic in topic_candidates:
-            n = Node("Topic", **topic.keywordify())
+            n = Node("Topic", title=topic.title)
+            topic.update_properties(n)
             if self.immediate_mode: self.graph.create(n)
             listing.append(n)
         return self._subgraphify(listing)
@@ -1301,7 +1328,8 @@ input for push operation. For safety mostly, unlikely needed.</p></div>
         `Author`: Bill Clark
 
         Retrieves topics from the graph. Assumes the topics are in the graph, use has_topic
-        beforehand. Takes the first found instance, but names should be singleton anyway.
+        beforehand. Takes the first found instance, but names should be singleton anyway. This topic object carries 
+        information with it to be placed on the relationship at a later time.
 
         `topic_candidates`: List of string topic names to retrieve.
 
@@ -1309,9 +1337,9 @@ input for push operation. For safety mostly, unlikely needed.</p></div>
         """
         listing = []
         for topic in topic_candidates:
-            match = self.graph.find_one("Topic", property_key='name', property_value=topic.title)
+            match = self.graph.find_one("Topic", property_key='title', property_value=topic.title)
             if not match: return False # Not in the DB
-            listing.append(topic.update_node(match))
+            listing.append(topic.update_properties(match))
         return self._subgraphify(listing)
 
     def get_or_add_topics(self, topic_candidates):
@@ -1385,8 +1413,8 @@ input for push operation. For safety mostly, unlikely needed.</p></div>
         """
         `Author`: Bill Clark
 
-        Takes a subgraph of topics and relates them to a singular record. Will be
-        modified, eventually.
+        Takes a subgraph of topics and relates them to a singular record. This relationship also takes the properties
+        set on the offline topic node instance and copies them to itself. This skips the title property. 
 
         `topic_subgraph`: A subgraph containing topic nodes to be related to the record.
 
@@ -1397,8 +1425,10 @@ input for push operation. For safety mostly, unlikely needed.</p></div>
         """
         listing = []
         for node in topic_subgraph.nodes():
-            listing.append(Relationship(record_node, 'Related', node, weight=node['strength']))
-            del node['strength']  # We use the node to carry the weight, not store it.
+            r = Relationship(record_node, 'Related', node)
+            for key in node:
+                if key != 'title': r[key] = node[key]
+            listing.append(r)
         return self._subgraphify(listing) | record_node
 
     def push(self, subgraph):
@@ -1417,8 +1447,25 @@ input for push operation. For safety mostly, unlikely needed.</p></div>
             print subgraph
             if raw_input("Confirm with y: ") != "y":
                 return -1
+        self._scrub_topics(subgraph)
         self.graph.push(subgraph)
         self.graph.create(subgraph)
+
+    def _scrub_topics(self, subgraph):
+        """
+        `Author`: Bill Clark 
+        
+        Removes all instance data that was carried on the node and leaves only the title and timestamp. We attach
+        data to the offline node instance we don't want to push up to the db. Here we simply clear it out. 
+        
+        `subgraph`: subgraph of nodes to have their data scrubbed.  
+        """
+        for node in subgraph.nodes():
+            title = node['title']
+            timestamp = node['timestamp']
+            node.clear()
+            node['title'] = title
+            node['timestamp'] = timestamp
 </code></pre>
   </div>
 </div>
@@ -1587,7 +1634,8 @@ we return True. If it's not found, we return false. </p>
     
   
     <div class="desc"><p><code>Author</code>: Bill Clark</p>
-<p>Connects to a graph for operations. Required before anything else.</p>
+<p>Connects to a graph for operations. Required before anything else.
+ToDo: Something with authentication</p>
 <p><code>graph_address</code>: web address of neo4j instance.</p></div>
   <div class="source_cont">
   <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-rss2neo.Recorder.Recorder.initialize', this);">Show source &equiv;</a></p>
@@ -1596,6 +1644,7 @@ we return True. If it's not found, we return false. </p>
     """
     `Author`: Bill Clark
     Connects to a graph for operations. Required before anything else.
+    ToDo: Something with authentication
     `graph_address`: web address of neo4j instance.
     """
     self.graph = Graph(self, graph_address)
@@ -1636,6 +1685,7 @@ flag is true.</p>
         print subgraph
         if raw_input("Confirm with y: ") != "y":
             return -1
+    self._scrub_topics(subgraph)
     self.graph.push(subgraph)
     self.graph.create(subgraph)
 </code></pre>
@@ -1654,8 +1704,8 @@ flag is true.</p>
     
   
     <div class="desc"><p><code>Author</code>: Bill Clark</p>
-<p>Takes a subgraph of topics and relates them to a singular record. Will be
-modified, eventually.</p>
+<p>Takes a subgraph of topics and relates them to a singular record. This relationship also takes the properties
+set on the offline topic node instance and copies them to itself. This skips the title property. </p>
 <p><code>topic_subgraph</code>: A subgraph containing topic nodes to be related to the record.</p>
 <p><code>record_node</code>: A node to relate to each topic in the topic_subgraph.</p>
 <p><code>return</code>: A subgraph containing the record, the topic_subgraph, and the new
@@ -1666,8 +1716,8 @@ relationships.</p></div>
     <pre><code>def relate(self, topic_subgraph, record_node):
     """
     `Author`: Bill Clark
-    Takes a subgraph of topics and relates them to a singular record. Will be
-    modified, eventually.
+    Takes a subgraph of topics and relates them to a singular record. This relationship also takes the properties
+    set on the offline topic node instance and copies them to itself. This skips the title property. 
     `topic_subgraph`: A subgraph containing topic nodes to be related to the record.
     `record_node`: A node to relate to each topic in the topic_subgraph.
     `return`: A subgraph containing the record, the topic_subgraph, and the new
@@ -1675,8 +1725,10 @@ relationships.</p></div>
     """
     listing = []
     for node in topic_subgraph.nodes():
-        listing.append(Relationship(record_node, 'Related', node, weight=node['strength']))
-        del node['strength']  # We use the node to carry the weight, not store it.
+        r = Relationship(record_node, 'Related', node)
+        for key in node:
+            if key != 'title': r[key] = node[key]
+        listing.append(r)
     return self._subgraphify(listing) | record_node
 </code></pre>
   </div>

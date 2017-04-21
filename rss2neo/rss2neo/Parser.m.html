@@ -4,7 +4,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
 
     <title>rss2neo.Parser API documentation</title>
-    <meta name="description" content="" />
+    <meta name="description" content="This file stores the static methods to interpret topic candidates from zero or more bodies of text.
+..." />
 
   <link href='http://fonts.googleapis.com/css?family=Source+Sans+Pro:400,300' rel='stylesheet' type='text/css'>
   
@@ -973,9 +974,9 @@ table {
       
   <ul>
     <li class="mono"><a href="#rss2neo.Parser.DEBUG">DEBUG</a></li>
-    <li class="mono"><a href="#rss2neo.Parser.blue">blue</a></li>
-    <li class="mono"><a href="#rss2neo.Parser.green">green</a></li>
-    <li class="mono"><a href="#rss2neo.Parser.red">red</a></li>
+    <li class="mono"><a href="#rss2neo.Parser.infl">infl</a></li>
+    <li class="mono"><a href="#rss2neo.Parser.libname">libname</a></li>
+    <li class="mono"><a href="#rss2neo.Parser.libnames">libnames</a></li>
   </ul>
 
     </li>
@@ -987,6 +988,7 @@ table {
     <li class="mono"><a href="#rss2neo.Parser.get_unstructured_topic">get_unstructured_topic</a></li>
     <li class="mono"><a href="#rss2neo.Parser.is_structured">is_structured</a></li>
     <li class="mono"><a href="#rss2neo.Parser.main">main</a></li>
+    <li class="mono"><a href="#rss2neo.Parser.non_noun_main">non_noun_main</a></li>
   </ul>
 
     </li>
@@ -1001,7 +1003,8 @@ table {
     <li class="mono"><a href="#rss2neo.Parser.Topic_Candidate.__init__">__init__</a></li>
     <li class="mono"><a href="#rss2neo.Parser.Topic_Candidate.append_after">append_after</a></li>
     <li class="mono"><a href="#rss2neo.Parser.Topic_Candidate.keywordify">keywordify</a></li>
-    <li class="mono"><a href="#rss2neo.Parser.Topic_Candidate.update_node">update_node</a></li>
+    <li class="mono"><a href="#rss2neo.Parser.Topic_Candidate.normalize_noun">normalize_noun</a></li>
+    <li class="mono"><a href="#rss2neo.Parser.Topic_Candidate.update_properties">update_properties</a></li>
   </ul>
 
         </li>
@@ -1020,39 +1023,65 @@ table {
 
   <header id="section-intro">
   <h1 class="title"><span class="name">rss2neo.Parser</span> module</h1>
-  
+  <p>This file stores the static methods to interpret topic candidates from zero or more bodies of text.
+The work that accomplishes this is in the methods parse_topics and parse_topics_not_nouns.
+get_unstructured_topic returns the list of un-structured topics from the given body of text.
+This uses the ne_chunker of the nltk_data package, to filter nouns of importance based on contextual observations.
+get_structured_topic returns the structured topic instances form the body of the text in the rss feed summary.
+is_structured returns a true if input data is structured, else false.
+the subsequent methods are all used in the context of just this file and its aforementioned outward interface. They have each been tailored to usage in this predefined environment.</p>
   
   <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-rss2neo.Parser', this);">Show source &equiv;</a></p>
   <div id="source-rss2neo.Parser" class="source">
-    <pre><code>from __future__ import division
+    <pre><code>"""
+This file stores the static methods to interpret topic candidates from zero or more bodies of text.
+The work that accomplishes this is in the methods parse_topics and parse_topics_not_nouns.
+get_unstructured_topic returns the list of un-structured topics from the given body of text.
+This uses the ne_chunker of the nltk_data package, to filter nouns of importance based on contextual observations.
+get_structured_topic returns the structured topic instances form the body of the text in the rss feed summary.
+is_structured returns a true if input data is structured, else false.
+the subsequent methods are all used in the context of just this file and its aforementioned outward interface. They have each been tailored to usage in this predefined environment.
+"""
+
+from __future__ import division
 
 import os
-import unicodedata
 import sys
-import validators
-import nltk
-import json
-import timeit
+import pip
 from functools import wraps
 from collections import defaultdict
 from markup_parser import markup_parser
-from colors import red, green, blue
 
-DEBUG = False
+"""Import statements will fail when not pipped in, so pip them to be up to date"""
+libnames = ['unicodedata', 'validators', 'nltk', 'json', 'timeit', 'inflect', 'Pattern']
+for libname in libnames:
+    try:
+        lib = __import__(libname)
+    except:
+        print sys.exc_info()
+        pip.main(['install', libname])
+    else:
+        globals()[libname] = lib
 
 """
-This file stores the static methods to interpret topic candidates from zero or more bodies of text.
-The work that accomplishes this is in the method parse_topics
-Structured_topic returns the structured topic instances form the body of the text in the rss feed summary.
-is_structured returns a true if input data is structured, else false.
+This switch controls printing on debug
 """
+DEBUG = True
+
+"""
+Set the 'infl' var to use a pre-built switch for singularization
+Used to tell if a given noun is singular or not, then pattern.re is used to singularize it
+"""
+infl = inflect.engine()
+# infl = None
 
 class Topic_Candidate(object):
     """
     `Author`: Bill Clark
     A class created by the Parser to represent a Topic object in the graph, in relation
     to the given record. The metadata then, is strictly tied to the record used when
-    creating the candidate.
+    creating the candidate. The candidate data does not all go onto the Topic object, the candidate carries
+    properties that will be later copied to the relationship between this topic and the record. 
     """
 
     def __repr__(self):
@@ -1061,22 +1090,52 @@ class Topic_Candidate(object):
     def __str__(self):
         return str(self.title)
 
-    def __init__(self, title, strength=None, label=None, after=None, before=None, suffix=None, prefix=None, depth=None):
-        self.title = title
+    def __init__(self, title, strength=0, label=None, after='', before='', suffix='', prefix='', depth=0):
+        self.title = self.normalize_noun(title) if infl else title
         self.strength = strength
         self.label = label
         self.after = after
-        self.before = before
+        self.before = ' '.join(before)
         self.depth = depth
-        self.suffix = suffix
-        self.prefix = prefix
+        self.suffix = suffix.title if suffix is not '' else ''
+        self.prefix = prefix.title if suffix is not '' else ''
 
     def keywordify(self):
-        return {'name': self.title, 'strength': self.strength}
+        """
+        `Author`: Bill Clark
+        
+        Returns a dictonary of the properties of the candidate. Used for compatibility in other methods.
+        
+        `return`: Dictonary of this candidate's properties. 
+        """
+        return self.__dict__
 
-    def update_node(self, node):
-        node['strength'] = self.strength
+    def update_properties(self, node):
+        """
+        `Author`: Bill Clark
+        
+        Here we take a Topic node object and apply the properties in the candidate to it. We either update the 
+        value or add it to the Topic node. This allows for running totals like strength as well as adding the 
+        properties in the candidate that will be copied to the relationship later. 
+        
+        `node`: A topic node object
+         
+        `return`: The modified node. 
+        """
+        for key in self.__dict__:
+            if self.__dict__[key] == self.title:
+                pass
+            elif node[key] is not None and type(node[key]) is not str:
+                node[key] += self.__dict__[key]
+            else: node[key] = self.__dict__[key]
         return node
+
+    def normalize_noun(self, title):
+        if infl.singular_noun(title) is False:
+            return title
+        else:
+            import pattern.en
+            return pattern.en.singularize(title)
 
     def __eq__(self, other):
         return self.title == other.title
@@ -1088,7 +1147,7 @@ class Topic_Candidate(object):
         return hash(self.title)
 
     def append_after(self, word):
-        self.after.append(word)
+        self.after = self.after + ' ' + word
 
 def get_structured_topic(extracted):
     """
@@ -1098,6 +1157,7 @@ def get_structured_topic(extracted):
     make_set is used to specify whether a set of unique topic candidate instances is formed from the result of the call to _strucutred_topic
 
     `extracted` the json object of the feed being examined
+
     `return` the result of the structured topic investigation.
     """
     body_of_text = extracted['summary']
@@ -1110,42 +1170,45 @@ def get_unstructured_topic(extracted, keys=('id', 'title', 'summary'), make_set=
     used by external modules to gather the unstructured topics of the summary of the feed json
 
     `extracted` the json object of the feed being examined
+
     `keys` the optional list of args that are the keys of the associative dictionary extracted to have topics extracted
+
     `make_set` optional argument for creating set of unique instances on return
+
     `debug` optional argument for printing state of topic candidates before return
+
     `return` the set of the unique topic candidate instances to be inserted by RssGrapher
     """
     ret = []
     for key in keys:
             ret.extend(_parse_topics(extracted[key]))
-    return set(ret) if make_set else ret
+    return set(ret)
 
 def _reconstruct(listing):
     """
     `Author` Bob S.
 
+    Used extensively for demo and debugging
     reconstruct the context of all topics from return listing alone.
     Requisite: the listing must be a list of topics already ordered by the order that they appear in the body of text where they were found
 
     `listing` the list of ORDERED topic candidate instances being iterated
     """
-
-    # print topics of the NP persuasion
     for topic in sorted(listing, key = lambda k: k.depth): # sort by depth into the doc
-        print green(repr(topic))
-        for var in vars(topic):
+        print repr(topic)
+        for var in topic.keywordify():
             print '\t', var, ":", getattr(topic, var)
-        print '\t', ' '.join(topic.before[-10:]), red(repr(topic)), ' '.join(topic.after[:10])
+        print '\t', topic.before, repr(topic), topic.after
 
-    ret = ''
-    first_topic = listing[0]
-    topic = first_topic
-    ret += blue(' '.join(topic.before))
-    while topic is not None:
-        ret += ' ' + red(str(topic)) + ' ' + blue(' '.join(topic.after))
-        topic = topic.suffix
-    ret += '\n'
-    print ret
+    # ret = ''
+    # first_topic = listing[0]
+    # topic = first_topic
+    # ret += blue(' '.join(topic.before))
+    # while topic is not None:
+    #     ret += ' ' + red(str(topic)) + ' ' + blue(' '.join(topic.after))
+    #     topic = topic.suffix
+    # ret += '\n'
+    # print ret
 
 def _structured_topic(body_of_text, try_markup=False):
     """
@@ -1154,7 +1217,9 @@ def _structured_topic(body_of_text, try_markup=False):
     This method will render the list of structured topics form the predisposed format of data, a JSON string.
 
     `body_of_text` the string to be parsed from the rss feed
+
     `try_markup` the optional argument to attempt to markup the body of text as json for manipulation
+
     `return` ret, the list of structured topics from the body of text
     """
     if try_markup and not is_structured(body_of_text):
@@ -1170,7 +1235,9 @@ def _parse_topics(body_of_text):
     The instances of topic candidate that are returned will be used in the database as units for relation creation
 
     `body_of_text` - the raw body of text to be processed
+
     `debug` optional argument for printing state of topic candidates before return
+
     `return` topic candidates - the generated collection of Noun based topics that have been extracted and constructed
     """
     if isinstance(body_of_text, unicode):
@@ -1178,7 +1245,7 @@ def _parse_topics(body_of_text):
     processed = _info_extract_preprocess(body_of_text)   # preprocessed body for tagged words in sentence form
     return _get_NP_topics(processed)
 
-def _parse_topics_not_nouns(*kargs):
+def _parse_topics_not_nouns(body_of_text):
     """
     `Author` Bob S.
 
@@ -1187,13 +1254,13 @@ def _parse_topics_not_nouns(*kargs):
     However, only means to yield the non-nouns words of interest
 
     `kargs` - the params (in the form zero or more) raw bodies of text to be processed
+
     `yield` topic candidates - the generated collection of non-Noun topics that have been extracted and constructed
     """
-    ret = []
-    for body_of_text in kargs:
-        processed = _info_extract_preprocess(body_of_text)   # preprocessed body for tagged words in sentence form
-        ret.append(_get_non_NP_topics(processed))
-    return ret
+    if isinstance(body_of_text, unicode):
+        body_of_text = unicodedata.normalize('NFKD', body_of_text).encode('ascii', 'ignore')
+    processed = _info_extract_preprocess(body_of_text)   # preprocessed body for tagged words in sentence form
+    return _get_non_NP_topics(processed)
 
 def is_structured(data):
     """
@@ -1204,6 +1271,7 @@ def is_structured(data):
     This format is JSON.
 
     `data` the literal string that is passed to be checked
+
     `return` True if the string can be leaded in JSON format, else False
     """
     try:
@@ -1221,10 +1289,11 @@ def _info_extract_preprocess(document):
     Finally those words are tagged by the default tagger of pos_tagger()
 
     `document` the string form body of text to be pre-processed
+
     `return` tagged - the tokenized, then tagged body of sentence delimited text.
     """
     sentences = nltk.sent_tokenize(document) #tokenize sentence into sentences
-    tokenized = [nltk.word_tokenize(sent) for sent in sentences] # tokenize each sentencs in sentences into tokenized
+    tokenized = [nltk.word_tokenize(sent) for sent in sentences] # tokenize each sentences in sentences into tokenized
     tagged = [nltk.pos_tag(sent) for sent in tokenized] # tag the sentences in tokenized
     return tagged
 
@@ -1238,6 +1307,7 @@ def _get_NP_topics(tagged):
     Finally the list is returned in one state to be returned to the get_topics method
 
     `tagged` the pre-processed body of text returned form the ie_preprocess() method
+
     `debug` optional argument for printing state of topic candidates before return
     """
     listing = []
@@ -1251,12 +1321,12 @@ def _get_NP_topics(tagged):
             depth += 1
             if type(word_tag) == nltk.Tree:
                 title = " ".join([title for title, pos in word_tag.leaves()]) # the key word to be used as the likely topic
-                topic = Topic_Candidate(title, depth=depth, prefix=prev_topic, before=before, after=[])
+                topic = Topic_Candidate(title, depth=depth, prefix=prev_topic, before=before)
                 before = []
                 listing.append(topic)
                 counts[title] += 1
                 if prev_topic is not None:
-                    prev_topic.suffix = topic
+                    prev_topic.suffix = topic.title
                 prev_topic = topic
             else:
                 word, pos = word_tag
@@ -1284,10 +1354,12 @@ def _get_non_NP_topics(tagged):
     Leverages the concept of grammar parsing (or using a commented out regex parser) to garner verb and adjective topics
 
     `tagged` - the pre-processed, sentence delimited, tokenized, tagged, body of text
+
     `return` labels, counts - the affiliated labels and count of appearances for likely topics
     """
     labels = defaultdict(set) # the dictionary of labels whose values are associated sets of topics
     counts =  defaultdict(int)  # the dictionary of topics whose value is the count of appearances in the entire body of text
+    ret = []
 
     grammar = r"""
       NP: {<DT|JJ|NN.*>+}          # Chunk sequences of DT, JJ, NN
@@ -1299,8 +1371,7 @@ def _get_non_NP_topics(tagged):
 
     """
     An alternative to pre-def grammar features chunking and chinking rules.
-    This method failed to provide an increase in accuracy but will remain for posterity.
-
+    This method failed to provide an increase in accuracy but has remained for posterity.
     >>> chunk_rule = ChunkRule("<.*>+", "Chunk everything")
     >>> chink_rule = ChinkRule("<VB\.>", "Chink on verbs/prepositions")
     >>> split_rule = SplitRule("<NN><VB>", "<DT><NN>",
@@ -1310,7 +1381,7 @@ def _get_non_NP_topics(tagged):
 
     for sentence in tagged:
         """
-        line used in tandem with the alt chunker seen above
+        this line used in tandem with the alt chunker (chunk_parser) seen above
 
         >>> chunked = chunk_parser.parse(sentence)
         """
@@ -1323,7 +1394,8 @@ def _get_non_NP_topics(tagged):
     for label in labels.keys():
             for title in labels[label]:
                 strength = counts[title]
-                yield Topic_Candidate(title=title, strength=strength, label=label)
+                ret.append(Topic_Candidate(title=title, strength=strength, label=label))
+    return ret
 
 def _timer(function):
     """ easy wrapper class for determining runtime of wrapped method"""
@@ -1334,7 +1406,7 @@ def _timer(function):
         result = function(*args, **kwargs)
         t1 = timeit.default_timer()
         diff = t1 - t0
-        phrase = " Total time running '%s': %s seconds " %(red(function.func_name), green(str(diff)))
+        phrase = " Total time running '%s': %s seconds " %(function.func_name, str(diff))
         print '\n{:*^150}\n'.format(phrase)
         return result, diff
     return func_timer
@@ -1389,6 +1461,20 @@ def main():
     return get_unstructured_topic(extracted, keys=['summary'])
     # return _parse_topics_not_nouns(body)
 
+@_timer
+def non_noun_main(make_set=True):
+    """----demo usage in context----"""
+
+    link = 'http://www.foxnews.com/us/2017/02/10/marine-vet-speaks-out-about-viral-video-supporting-trump-travel-ban.html'
+    body =_process_input(link)
+    extracted = {'summary': body, 'link': link}
+    ret = []
+    for key in extracted.keys():
+            ret.extend(_parse_topics_not_nouns(extracted[key]))
+    print ret
+    s = set(ret) if make_set else ret
+    return s, extracted['link']
+
 
 """Code to assign working path of nltk_data resource to local copy, if one exists else tell user to download"""
 try:
@@ -1405,31 +1491,20 @@ except LookupError as e:
 if DEBUG:
     print "Using path(s) to nltk resources:", nltk.data.path
 
+
 if __name__ == '__main__':
+
+    """ Alt main to test non-noun word extraction"""
+    # results = non_noun_main()[0]
     results = main()[0]
     if DEBUG:
-        print 'results:', green(str(results[0]))
-        print 'link:', green(results[1])
+        print 'results:', str(results[0])
+        print 'link:', results[1]
+
+        for res in results[0]:
+            print res.keywordify()
+
     sys.exit(0)
-
-
-"""
-Used only for investigation of lemmatization.
-Remnants kept in case it can be found useful.
-
-def lemmatize_investigate():
-    body = _process_input('http://www.foxnews.com/politics/2017/02/08/white-house-fires-back-at-immigration-order-critics-with-list-terror-arrests.html')
-    tokenized = nltk.word_tokenize(body)
-    tagged = nltk.pos_tag(tokenized)
-    gen = generate_frequency_by_pos(tagged=tagged, pos=('JJ', 'VB'))
-    from nltk.stem import WordNetLemmatizer
-    wordnet_lemmatizer = WordNetLemmatizer()
-    for elem in gen:
-        print elem[0],
-        for title, strength in elem[1]:
-            print title, wordnet_lemmatizer.lemmatize(title), ',',
-        print
-"""
 </code></pre>
   </div>
 
@@ -1441,16 +1516,14 @@ def lemmatize_investigate():
       <p id="rss2neo.Parser.DEBUG" class="name">var <span class="ident">DEBUG</span></p>
       
   
-    <div class="desc"><p>This file stores the static methods to interpret topic candidates from zero or more bodies of text.
-The work that accomplishes this is in the method parse_topics
-Structured_topic returns the structured topic instances form the body of the text in the rss feed summary.
-is_structured returns a true if input data is structured, else false.</p></div>
+    <div class="desc"><p>Set the 'infl' var to use a pre-built switch for singularization
+Used to tell if a given noun is singular or not, then pattern.re is used to singularize it</p></div>
   <div class="source_cont">
 </div>
 
       </div>
       <div class="item">
-      <p id="rss2neo.Parser.blue" class="name">var <span class="ident">blue</span></p>
+      <p id="rss2neo.Parser.infl" class="name">var <span class="ident">infl</span></p>
       
   
   <div class="source_cont">
@@ -1458,7 +1531,7 @@ is_structured returns a true if input data is structured, else false.</p></div>
 
       </div>
       <div class="item">
-      <p id="rss2neo.Parser.green" class="name">var <span class="ident">green</span></p>
+      <p id="rss2neo.Parser.libname" class="name">var <span class="ident">libname</span></p>
       
   
   <div class="source_cont">
@@ -1466,7 +1539,7 @@ is_structured returns a true if input data is structured, else false.</p></div>
 
       </div>
       <div class="item">
-      <p id="rss2neo.Parser.red" class="name">var <span class="ident">red</span></p>
+      <p id="rss2neo.Parser.libnames" class="name">var <span class="ident">libnames</span></p>
       
   
   <div class="source_cont">
@@ -1487,8 +1560,8 @@ is_structured returns a true if input data is structured, else false.</p></div>
     <div class="desc"><p><code>Author</code> Bob S.</p>
 <p>used by external modules to gather the structured topics of the summary of the feed json
 make_set is used to specify whether a set of unique topic candidate instances is formed from the result of the call to _strucutred_topic</p>
-<p><code>extracted</code> the json object of the feed being examined
-<code>return</code> the result of the structured topic investigation.</p></div>
+<p><code>extracted</code> the json object of the feed being examined</p>
+<p><code>return</code> the result of the structured topic investigation.</p></div>
   <div class="source_cont">
   <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-rss2neo.Parser.get_structured_topic', this);">Show source &equiv;</a></p>
   <div id="source-rss2neo.Parser.get_structured_topic" class="source">
@@ -1500,6 +1573,7 @@ make_set is used to specify whether a set of unique topic candidate instances is
     make_set is used to specify whether a set of unique topic candidate instances is formed from the result of the call to _strucutred_topic
 
     `extracted` the json object of the feed being examined
+
     `return` the result of the structured topic investigation.
     """
     body_of_text = extracted['summary']
@@ -1521,11 +1595,11 @@ make_set is used to specify whether a set of unique topic candidate instances is
   
     <div class="desc"><p><code>Author</code> Bob S.</p>
 <p>used by external modules to gather the unstructured topics of the summary of the feed json</p>
-<p><code>extracted</code> the json object of the feed being examined
-<code>keys</code> the optional list of args that are the keys of the associative dictionary extracted to have topics extracted
-<code>make_set</code> optional argument for creating set of unique instances on return
-<code>debug</code> optional argument for printing state of topic candidates before return
-<code>return</code> the set of the unique topic candidate instances to be inserted by RssGrapher</p></div>
+<p><code>extracted</code> the json object of the feed being examined</p>
+<p><code>keys</code> the optional list of args that are the keys of the associative dictionary extracted to have topics extracted</p>
+<p><code>make_set</code> optional argument for creating set of unique instances on return</p>
+<p><code>debug</code> optional argument for printing state of topic candidates before return</p>
+<p><code>return</code> the set of the unique topic candidate instances to be inserted by RssGrapher</p></div>
   <div class="source_cont">
   <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-rss2neo.Parser.get_unstructured_topic', this);">Show source &equiv;</a></p>
   <div id="source-rss2neo.Parser.get_unstructured_topic" class="source">
@@ -1536,15 +1610,19 @@ make_set is used to specify whether a set of unique topic candidate instances is
     used by external modules to gather the unstructured topics of the summary of the feed json
 
     `extracted` the json object of the feed being examined
+
     `keys` the optional list of args that are the keys of the associative dictionary extracted to have topics extracted
+
     `make_set` optional argument for creating set of unique instances on return
+
     `debug` optional argument for printing state of topic candidates before return
+
     `return` the set of the unique topic candidate instances to be inserted by RssGrapher
     """
     ret = []
     for key in keys:
             ret.extend(_parse_topics(extracted[key]))
-    return set(ret) if make_set else ret
+    return set(ret)
 </code></pre>
   </div>
 </div>
@@ -1564,8 +1642,8 @@ make_set is used to specify whether a set of unique topic candidate instances is
 <p>This method determines if the given python string, data, is structured data or not.
 Structured data is information in the format the development team has agreed on using as the format to be used when we not examining raw, unfiltered text.
 This format is JSON.</p>
-<p><code>data</code> the literal string that is passed to be checked
-<code>return</code> True if the string can be leaded in JSON format, else False</p></div>
+<p><code>data</code> the literal string that is passed to be checked</p>
+<p><code>return</code> True if the string can be leaded in JSON format, else False</p></div>
   <div class="source_cont">
   <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-rss2neo.Parser.is_structured', this);">Show source &equiv;</a></p>
   <div id="source-rss2neo.Parser.is_structured" class="source">
@@ -1578,6 +1656,7 @@ This format is JSON.</p>
     This format is JSON.
 
     `data` the literal string that is passed to be checked
+
     `return` True if the string can be leaded in JSON format, else False
     """
     try:
@@ -1610,7 +1689,35 @@ def func_timer(*args, **kwargs):
     result = function(*args, **kwargs)
     t1 = timeit.default_timer()
     diff = t1 - t0
-    phrase = " Total time running '%s': %s seconds " %(red(function.func_name), green(str(diff)))
+    phrase = " Total time running '%s': %s seconds " %(function.func_name, str(diff))
+    print '\n{:*^150}\n'.format(phrase)
+    return result, diff
+</code></pre>
+  </div>
+</div>
+
+  </div>
+  
+      
+  <div class="item">
+    <div class="name def" id="rss2neo.Parser.non_noun_main">
+    <p>def <span class="ident">non_noun_main</span>(</p><p>*args, **kwargs)</p>
+    </div>
+    
+
+    
+  
+    <div class="desc"><p>----demo usage in context----</p></div>
+  <div class="source_cont">
+  <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-rss2neo.Parser.non_noun_main', this);">Show source &equiv;</a></p>
+  <div id="source-rss2neo.Parser.non_noun_main" class="source">
+    <pre><code>@wraps(function)
+def func_timer(*args, **kwargs):
+    t0 = timeit.default_timer()
+    result = function(*args, **kwargs)
+    t1 = timeit.default_timer()
+    diff = t1 - t0
+    phrase = " Total time running '%s': %s seconds " %(function.func_name, str(diff))
     print '\n{:*^150}\n'.format(phrase)
     return result, diff
 </code></pre>
@@ -1629,7 +1736,8 @@ def func_timer(*args, **kwargs):
     <div class="desc"><p><code>Author</code>: Bill Clark
 A class created by the Parser to represent a Topic object in the graph, in relation
 to the given record. The metadata then, is strictly tied to the record used when
-creating the candidate.</p></div>
+creating the candidate. The candidate data does not all go onto the Topic object, the candidate carries
+properties that will be later copied to the relationship between this topic and the record.</p></div>
   <div class="source_cont">
   <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-rss2neo.Parser.Topic_Candidate', this);">Show source &equiv;</a></p>
   <div id="source-rss2neo.Parser.Topic_Candidate" class="source">
@@ -1638,7 +1746,8 @@ creating the candidate.</p></div>
     `Author`: Bill Clark
     A class created by the Parser to represent a Topic object in the graph, in relation
     to the given record. The metadata then, is strictly tied to the record used when
-    creating the candidate.
+    creating the candidate. The candidate data does not all go onto the Topic object, the candidate carries
+    properties that will be later copied to the relationship between this topic and the record. 
     """
 
     def __repr__(self):
@@ -1647,22 +1756,52 @@ creating the candidate.</p></div>
     def __str__(self):
         return str(self.title)
 
-    def __init__(self, title, strength=None, label=None, after=None, before=None, suffix=None, prefix=None, depth=None):
-        self.title = title
+    def __init__(self, title, strength=0, label=None, after='', before='', suffix='', prefix='', depth=0):
+        self.title = self.normalize_noun(title) if infl else title
         self.strength = strength
         self.label = label
         self.after = after
-        self.before = before
+        self.before = ' '.join(before)
         self.depth = depth
-        self.suffix = suffix
-        self.prefix = prefix
+        self.suffix = suffix.title if suffix is not '' else ''
+        self.prefix = prefix.title if suffix is not '' else ''
 
     def keywordify(self):
-        return {'name': self.title, 'strength': self.strength}
+        """
+        `Author`: Bill Clark
+        
+        Returns a dictonary of the properties of the candidate. Used for compatibility in other methods.
+        
+        `return`: Dictonary of this candidate's properties. 
+        """
+        return self.__dict__
 
-    def update_node(self, node):
-        node['strength'] = self.strength
+    def update_properties(self, node):
+        """
+        `Author`: Bill Clark
+        
+        Here we take a Topic node object and apply the properties in the candidate to it. We either update the 
+        value or add it to the Topic node. This allows for running totals like strength as well as adding the 
+        properties in the candidate that will be copied to the relationship later. 
+        
+        `node`: A topic node object
+         
+        `return`: The modified node. 
+        """
+        for key in self.__dict__:
+            if self.__dict__[key] == self.title:
+                pass
+            elif node[key] is not None and type(node[key]) is not str:
+                node[key] += self.__dict__[key]
+            else: node[key] = self.__dict__[key]
         return node
+
+    def normalize_noun(self, title):
+        if infl.singular_noun(title) is False:
+            return title
+        else:
+            import pattern.en
+            return pattern.en.singularize(title)
 
     def __eq__(self, other):
         return self.title == other.title
@@ -1674,7 +1813,7 @@ creating the candidate.</p></div>
         return hash(self.title)
 
     def append_after(self, word):
-        self.after.append(word)
+        self.after = self.after + ' ' + word
 </code></pre>
   </div>
 </div>
@@ -1771,7 +1910,7 @@ creating the candidate.</p></div>
             
   <div class="item">
     <div class="name def" id="rss2neo.Parser.Topic_Candidate.__init__">
-    <p>def <span class="ident">__init__</span>(</p><p>self, title, strength=None, label=None, after=None, before=None, suffix=None, prefix=None, depth=None)</p>
+    <p>def <span class="ident">__init__</span>(</p><p>self, title, strength=0, label=None, after=&#39;&#39;, before=&#39;&#39;, suffix=&#39;&#39;, prefix=&#39;&#39;, depth=0)</p>
     </div>
     
 
@@ -1780,15 +1919,15 @@ creating the candidate.</p></div>
   <div class="source_cont">
   <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-rss2neo.Parser.Topic_Candidate.__init__', this);">Show source &equiv;</a></p>
   <div id="source-rss2neo.Parser.Topic_Candidate.__init__" class="source">
-    <pre><code>def __init__(self, title, strength=None, label=None, after=None, before=None, suffix=None, prefix=None, depth=None):
-    self.title = title
+    <pre><code>def __init__(self, title, strength=0, label=None, after='', before='', suffix='', prefix='', depth=0):
+    self.title = self.normalize_noun(title) if infl else title
     self.strength = strength
     self.label = label
     self.after = after
-    self.before = before
+    self.before = ' '.join(before)
     self.depth = depth
-    self.suffix = suffix
-    self.prefix = prefix
+    self.suffix = suffix.title if suffix is not '' else ''
+    self.prefix = prefix.title if suffix is not '' else ''
 </code></pre>
   </div>
 </div>
@@ -1808,7 +1947,7 @@ creating the candidate.</p></div>
   <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-rss2neo.Parser.Topic_Candidate.append_after', this);">Show source &equiv;</a></p>
   <div id="source-rss2neo.Parser.Topic_Candidate.append_after" class="source">
     <pre><code>def append_after(self, word):
-    self.after.append(word)
+    self.after = self.after + ' ' + word
 </code></pre>
   </div>
 </div>
@@ -1824,11 +1963,21 @@ creating the candidate.</p></div>
 
     
   
+    <div class="desc"><p><code>Author</code>: Bill Clark</p>
+<p>Returns a dictonary of the properties of the candidate. Used for compatibility in other methods.</p>
+<p><code>return</code>: Dictonary of this candidate's properties.</p></div>
   <div class="source_cont">
   <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-rss2neo.Parser.Topic_Candidate.keywordify', this);">Show source &equiv;</a></p>
   <div id="source-rss2neo.Parser.Topic_Candidate.keywordify" class="source">
     <pre><code>def keywordify(self):
-    return {'name': self.title, 'strength': self.strength}
+    """
+    `Author`: Bill Clark
+    
+    Returns a dictonary of the properties of the candidate. Used for compatibility in other methods.
+    
+    `return`: Dictonary of this candidate's properties. 
+    """
+    return self.__dict__
 </code></pre>
   </div>
 </div>
@@ -1837,18 +1986,64 @@ creating the candidate.</p></div>
   
             
   <div class="item">
-    <div class="name def" id="rss2neo.Parser.Topic_Candidate.update_node">
-    <p>def <span class="ident">update_node</span>(</p><p>self, node)</p>
+    <div class="name def" id="rss2neo.Parser.Topic_Candidate.normalize_noun">
+    <p>def <span class="ident">normalize_noun</span>(</p><p>self, title)</p>
     </div>
     
 
     
   
   <div class="source_cont">
-  <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-rss2neo.Parser.Topic_Candidate.update_node', this);">Show source &equiv;</a></p>
-  <div id="source-rss2neo.Parser.Topic_Candidate.update_node" class="source">
-    <pre><code>def update_node(self, node):
-    node['strength'] = self.strength
+  <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-rss2neo.Parser.Topic_Candidate.normalize_noun', this);">Show source &equiv;</a></p>
+  <div id="source-rss2neo.Parser.Topic_Candidate.normalize_noun" class="source">
+    <pre><code>def normalize_noun(self, title):
+    if infl.singular_noun(title) is False:
+        return title
+    else:
+        import pattern.en
+        return pattern.en.singularize(title)
+</code></pre>
+  </div>
+</div>
+
+  </div>
+  
+            
+  <div class="item">
+    <div class="name def" id="rss2neo.Parser.Topic_Candidate.update_properties">
+    <p>def <span class="ident">update_properties</span>(</p><p>self, node)</p>
+    </div>
+    
+
+    
+  
+    <div class="desc"><p><code>Author</code>: Bill Clark</p>
+<p>Here we take a Topic node object and apply the properties in the candidate to it. We either update the 
+value or add it to the Topic node. This allows for running totals like strength as well as adding the 
+properties in the candidate that will be copied to the relationship later. </p>
+<p><code>node</code>: A topic node object</p>
+<p><code>return</code>: The modified node.</p></div>
+  <div class="source_cont">
+  <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-rss2neo.Parser.Topic_Candidate.update_properties', this);">Show source &equiv;</a></p>
+  <div id="source-rss2neo.Parser.Topic_Candidate.update_properties" class="source">
+    <pre><code>def update_properties(self, node):
+    """
+    `Author`: Bill Clark
+    
+    Here we take a Topic node object and apply the properties in the candidate to it. We either update the 
+    value or add it to the Topic node. This allows for running totals like strength as well as adding the 
+    properties in the candidate that will be copied to the relationship later. 
+    
+    `node`: A topic node object
+     
+    `return`: The modified node. 
+    """
+    for key in self.__dict__:
+        if self.__dict__[key] == self.title:
+            pass
+        elif node[key] is not None and type(node[key]) is not str:
+            node[key] += self.__dict__[key]
+        else: node[key] = self.__dict__[key]
     return node
 </code></pre>
   </div>

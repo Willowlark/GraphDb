@@ -990,9 +990,20 @@ table {
           
   <ul>
     <li class="mono"><a href="#rss2neo.RssFeeder.Feeder.__init__">__init__</a></li>
-    <li class="mono"><a href="#rss2neo.RssFeeder.Feeder.getFeeds">getFeeds</a></li>
-    <li class="mono"><a href="#rss2neo.RssFeeder.Feeder.getLinks">getLinks</a></li>
-    <li class="mono"><a href="#rss2neo.RssFeeder.Feeder.load_feeds">load_feeds</a></li>
+    <li class="mono"><a href="#rss2neo.RssFeeder.Feeder.fetch">fetch</a></li>
+  </ul>
+
+        </li>
+        <li class="mono">
+        <span class="class_name"><a href="#rss2neo.RssFeeder.RssFeeder">RssFeeder</a></span>
+        
+          
+  <ul>
+    <li class="mono"><a href="#rss2neo.RssFeeder.RssFeeder.__init__">__init__</a></li>
+    <li class="mono"><a href="#rss2neo.RssFeeder.RssFeeder.fetch">fetch</a></li>
+    <li class="mono"><a href="#rss2neo.RssFeeder.RssFeeder.getFeeds">getFeeds</a></li>
+    <li class="mono"><a href="#rss2neo.RssFeeder.RssFeeder.getLinks">getLinks</a></li>
+    <li class="mono"><a href="#rss2neo.RssFeeder.RssFeeder.load_feeds">load_feeds</a></li>
   </ul>
 
         </li>
@@ -1019,13 +1030,13 @@ table {
 import validators
 import sys
 
-# * Created by Eliakah kakou
-# Feed.py
-# This class allows for more functionality in regards
-# to the dictionary entered in the constructor
-
 
 class Feed:
+    # * Created by Eliakah kakou
+    # Feed.py
+    # This class allows for more functionality in regards
+    # to the dictionary entered in the constructor
+
     # constructor
     def __init__(self, feed):
         self.feed = feed
@@ -1037,13 +1048,54 @@ class Feed:
     def record_content(self):
         return self.feed['link']
 
-# * Created by Eliakah kakou
-# RssFeeder.py
-# This class gets an RSS feed and manipulates
-# the data based on the url entered
-
-
 class Feeder:
+    """
+    `Author`: Bill Clark
+    
+    An interface to fulfill a strategy pattern design in the Grapher with feeders.
+    An implementation of this interface will be usable with the Grapher so long as
+    it provides the appropriate returns. 
+    
+    Feeder instances should be created with a link to some sort of file. The result
+    to come out of it's methods will be used by the Parser Module to generate topics
+    about the information in the Feed. A Feed represents a single article of related
+    data. The implementation should generate Feed objects as defined above in order
+    to be encapsulated. 
+    """
+    def __init__(self, file):
+        """
+        A feeder should be initialized to read from it's source when commanded to
+        via the load_feeds method. Feeds is a list of Feed objects specifically, 
+        and is interacted with in the feeds generator call. 
+        
+        `file`: The file to process later. 
+        """
+        self.feeds = []
+        self.path = file
+
+    def feeds(self):
+        """
+        Returns the feeds the Feeder is holding on to via a generator structure.  
+        """
+        for feed in self.feeds:
+            yield feed
+        #feeds = []
+
+    def fetch(self):
+        """
+        Calling this method should retrieve information using the file provided
+        at initialization. Following that, that information will be standardized
+        into a Feed object and stored in the feeds instance variable. This is going
+        to be implemented in very different ways, depending on the file type used. 
+        """
+        pass
+
+
+class RssFeeder(Feeder):
+    # * Created by Eliakah kakou
+    # RssFeeder.py
+    # This class gets an RSS feed and manipulates
+    # the data based on the url entered
 
     # constructor
     def __init__(self, file):
@@ -1058,7 +1110,7 @@ class Feeder:
         try:
             for i, line in enumerate(input_file):
                 self.links.append(line)
-                #print line,
+                # print line,
         finally:
             input_file.close()
 
@@ -1082,12 +1134,13 @@ class Feeder:
 
         return feeds
 
+
 if __name__ == "__main__":
     feeder = Feeder('links.txt')
     feeds = feeder.load_feeds()
 
     for i in range(len(feeds)):
-            print  feeds[i].extract()
+        print  feeds[i].extract()
 </code></pre>
   </div>
 
@@ -1106,6 +1159,11 @@ if __name__ == "__main__":
   <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-rss2neo.RssFeeder.Feed', this);">Show source &equiv;</a></p>
   <div id="source-rss2neo.RssFeeder.Feed" class="source">
     <pre><code>class Feed:
+    # * Created by Eliakah kakou
+    # Feed.py
+    # This class allows for more functionality in regards
+    # to the dictionary entered in the constructor
+
     # constructor
     def __init__(self, feed):
         self.feed = feed
@@ -1205,10 +1263,168 @@ if __name__ == "__main__":
       <p id="rss2neo.RssFeeder.Feeder" class="name">class <span class="ident">Feeder</span></p>
       
   
+    <div class="desc"><p><code>Author</code>: Bill Clark</p>
+<p>An interface to fulfill a strategy pattern design in the Grapher with feeders.
+An implementation of this interface will be usable with the Grapher so long as
+it provides the appropriate returns. </p>
+<p>Feeder instances should be created with a link to some sort of file. The result
+to come out of it's methods will be used by the Parser Module to generate topics
+about the information in the Feed. A Feed represents a single article of related
+data. The implementation should generate Feed objects as defined above in order
+to be encapsulated.</p></div>
   <div class="source_cont">
   <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-rss2neo.RssFeeder.Feeder', this);">Show source &equiv;</a></p>
   <div id="source-rss2neo.RssFeeder.Feeder" class="source">
     <pre><code>class Feeder:
+    """
+    `Author`: Bill Clark
+    
+    An interface to fulfill a strategy pattern design in the Grapher with feeders.
+    An implementation of this interface will be usable with the Grapher so long as
+    it provides the appropriate returns. 
+    
+    Feeder instances should be created with a link to some sort of file. The result
+    to come out of it's methods will be used by the Parser Module to generate topics
+    about the information in the Feed. A Feed represents a single article of related
+    data. The implementation should generate Feed objects as defined above in order
+    to be encapsulated. 
+    """
+    def __init__(self, file):
+        """
+        A feeder should be initialized to read from it's source when commanded to
+        via the load_feeds method. Feeds is a list of Feed objects specifically, 
+        and is interacted with in the feeds generator call. 
+        
+        `file`: The file to process later. 
+        """
+        self.feeds = []
+        self.path = file
+
+    def feeds(self):
+        """
+        Returns the feeds the Feeder is holding on to via a generator structure.  
+        """
+        for feed in self.feeds:
+            yield feed
+        #feeds = []
+
+    def fetch(self):
+        """
+        Calling this method should retrieve information using the file provided
+        at initialization. Following that, that information will be standardized
+        into a Feed object and stored in the feeds instance variable. This is going
+        to be implemented in very different ways, depending on the file type used. 
+        """
+        pass
+</code></pre>
+  </div>
+</div>
+
+
+      <div class="class">
+          <h3>Ancestors (in MRO)</h3>
+          <ul class="class_list">
+          <li><a href="#rss2neo.RssFeeder.Feeder">Feeder</a></li>
+          </ul>
+          <h3>Instance variables</h3>
+            <div class="item">
+            <p id="rss2neo.RssFeeder.Feeder.feeds" class="name">var <span class="ident">feeds</span></p>
+            
+
+            
+  
+  <div class="source_cont">
+</div>
+
+            </div>
+            <div class="item">
+            <p id="rss2neo.RssFeeder.Feeder.path" class="name">var <span class="ident">path</span></p>
+            
+
+            
+  
+  <div class="source_cont">
+</div>
+
+            </div>
+          <h3>Methods</h3>
+            
+  <div class="item">
+    <div class="name def" id="rss2neo.RssFeeder.Feeder.__init__">
+    <p>def <span class="ident">__init__</span>(</p><p>self, file)</p>
+    </div>
+    
+
+    
+  
+    <div class="desc"><p>A feeder should be initialized to read from it's source when commanded to
+via the load_feeds method. Feeds is a list of Feed objects specifically, 
+and is interacted with in the feeds generator call. </p>
+<p><code>file</code>: The file to process later.</p></div>
+  <div class="source_cont">
+  <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-rss2neo.RssFeeder.Feeder.__init__', this);">Show source &equiv;</a></p>
+  <div id="source-rss2neo.RssFeeder.Feeder.__init__" class="source">
+    <pre><code>def __init__(self, file):
+    """
+    A feeder should be initialized to read from it's source when commanded to
+    via the load_feeds method. Feeds is a list of Feed objects specifically, 
+    and is interacted with in the feeds generator call. 
+    
+    `file`: The file to process later. 
+    """
+    self.feeds = []
+    self.path = file
+</code></pre>
+  </div>
+</div>
+
+  </div>
+  
+            
+  <div class="item">
+    <div class="name def" id="rss2neo.RssFeeder.Feeder.fetch">
+    <p>def <span class="ident">fetch</span>(</p><p>self)</p>
+    </div>
+    
+
+    
+  
+    <div class="desc"><p>Calling this method should retrieve information using the file provided
+at initialization. Following that, that information will be standardized
+into a Feed object and stored in the feeds instance variable. This is going
+to be implemented in very different ways, depending on the file type used.</p></div>
+  <div class="source_cont">
+  <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-rss2neo.RssFeeder.Feeder.fetch', this);">Show source &equiv;</a></p>
+  <div id="source-rss2neo.RssFeeder.Feeder.fetch" class="source">
+    <pre><code>def fetch(self):
+    """
+    Calling this method should retrieve information using the file provided
+    at initialization. Following that, that information will be standardized
+    into a Feed object and stored in the feeds instance variable. This is going
+    to be implemented in very different ways, depending on the file type used. 
+    """
+    pass
+</code></pre>
+  </div>
+</div>
+
+  </div>
+  
+      </div>
+      </div>
+      
+      <div class="item">
+      <p id="rss2neo.RssFeeder.RssFeeder" class="name">class <span class="ident">RssFeeder</span></p>
+      
+  
+  <div class="source_cont">
+  <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-rss2neo.RssFeeder.RssFeeder', this);">Show source &equiv;</a></p>
+  <div id="source-rss2neo.RssFeeder.RssFeeder" class="source">
+    <pre><code>class RssFeeder(Feeder):
+    # * Created by Eliakah kakou
+    # RssFeeder.py
+    # This class gets an RSS feed and manipulates
+    # the data based on the url entered
 
     # constructor
     def __init__(self, file):
@@ -1223,7 +1439,7 @@ if __name__ == "__main__":
         try:
             for i, line in enumerate(input_file):
                 self.links.append(line)
-                #print line,
+                # print line,
         finally:
             input_file.close()
 
@@ -1254,11 +1470,26 @@ if __name__ == "__main__":
       <div class="class">
           <h3>Ancestors (in MRO)</h3>
           <ul class="class_list">
+          <li><a href="#rss2neo.RssFeeder.RssFeeder">RssFeeder</a></li>
           <li><a href="#rss2neo.RssFeeder.Feeder">Feeder</a></li>
           </ul>
           <h3>Instance variables</h3>
             <div class="item">
-            <p id="rss2neo.RssFeeder.Feeder.feeds" class="name">var <span class="ident">feeds</span></p>
+            <p id="rss2neo.RssFeeder.RssFeeder.feeds" class="name">var <span class="ident">feeds</span></p>
+            
+    <p class="inheritance">
+     <strong>Inheritance:</strong>
+       <code><a href="#rss2neo.RssFeeder.Feeder">Feeder</a></code>.<code><a href="#rss2neo.RssFeeder.Feeder.feeds">feeds</a></code>
+    </p>
+
+            
+  
+  <div class="source_cont">
+</div>
+
+            </div>
+            <div class="item">
+            <p id="rss2neo.RssFeeder.RssFeeder.links" class="name">var <span class="ident">links</span></p>
             
 
             
@@ -1268,8 +1499,12 @@ if __name__ == "__main__":
 
             </div>
             <div class="item">
-            <p id="rss2neo.RssFeeder.Feeder.links" class="name">var <span class="ident">links</span></p>
+            <p id="rss2neo.RssFeeder.RssFeeder.path" class="name">var <span class="ident">path</span></p>
             
+    <p class="inheritance">
+     <strong>Inheritance:</strong>
+       <code><a href="#rss2neo.RssFeeder.Feeder">Feeder</a></code>.<code><a href="#rss2neo.RssFeeder.Feeder.path">path</a></code>
+    </p>
 
             
   
@@ -1280,16 +1515,24 @@ if __name__ == "__main__":
           <h3>Methods</h3>
             
   <div class="item">
-    <div class="name def" id="rss2neo.RssFeeder.Feeder.__init__">
+    <div class="name def" id="rss2neo.RssFeeder.RssFeeder.__init__">
     <p>def <span class="ident">__init__</span>(</p><p>self, file)</p>
     </div>
     
+    <p class="inheritance">
+     <strong>Inheritance:</strong>
+       <code><a href="#rss2neo.RssFeeder.Feeder">Feeder</a></code>.<code><a href="#rss2neo.RssFeeder.Feeder.__init__">__init__</a></code>
+    </p>
 
     
   
+    <div class="desc inherited"><p>A feeder should be initialized to read from it's source when commanded to
+via the load_feeds method. Feeds is a list of Feed objects specifically, 
+and is interacted with in the feeds generator call. </p>
+<p><code>file</code>: The file to process later.</p></div>
   <div class="source_cont">
-  <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-rss2neo.RssFeeder.Feeder.__init__', this);">Show source &equiv;</a></p>
-  <div id="source-rss2neo.RssFeeder.Feeder.__init__" class="source">
+  <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-rss2neo.RssFeeder.RssFeeder.__init__', this);">Show source &equiv;</a></p>
+  <div id="source-rss2neo.RssFeeder.RssFeeder.__init__" class="source">
     <pre><code>def __init__(self, file):
     self.feeds = []
     self.links = []
@@ -1304,7 +1547,41 @@ if __name__ == "__main__":
   
             
   <div class="item">
-    <div class="name def" id="rss2neo.RssFeeder.Feeder.getFeeds">
+    <div class="name def" id="rss2neo.RssFeeder.RssFeeder.fetch">
+    <p>def <span class="ident">fetch</span>(</p><p>self)</p>
+    </div>
+    
+    <p class="inheritance">
+     <strong>Inheritance:</strong>
+       <code><a href="#rss2neo.RssFeeder.Feeder">Feeder</a></code>.<code><a href="#rss2neo.RssFeeder.Feeder.fetch">fetch</a></code>
+    </p>
+
+    
+  
+    <div class="desc inherited"><p>Calling this method should retrieve information using the file provided
+at initialization. Following that, that information will be standardized
+into a Feed object and stored in the feeds instance variable. This is going
+to be implemented in very different ways, depending on the file type used.</p></div>
+  <div class="source_cont">
+  <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-rss2neo.RssFeeder.RssFeeder.fetch', this);">Show source &equiv;</a></p>
+  <div id="source-rss2neo.RssFeeder.RssFeeder.fetch" class="source">
+    <pre><code>def fetch(self):
+    """
+    Calling this method should retrieve information using the file provided
+    at initialization. Following that, that information will be standardized
+    into a Feed object and stored in the feeds instance variable. This is going
+    to be implemented in very different ways, depending on the file type used. 
+    """
+    pass
+</code></pre>
+  </div>
+</div>
+
+  </div>
+  
+            
+  <div class="item">
+    <div class="name def" id="rss2neo.RssFeeder.RssFeeder.getFeeds">
     <p>def <span class="ident">getFeeds</span>(</p><p>self, url)</p>
     </div>
     
@@ -1312,8 +1589,8 @@ if __name__ == "__main__":
     
   
   <div class="source_cont">
-  <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-rss2neo.RssFeeder.Feeder.getFeeds', this);">Show source &equiv;</a></p>
-  <div id="source-rss2neo.RssFeeder.Feeder.getFeeds" class="source">
+  <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-rss2neo.RssFeeder.RssFeeder.getFeeds', this);">Show source &equiv;</a></p>
+  <div id="source-rss2neo.RssFeeder.RssFeeder.getFeeds" class="source">
     <pre><code>def getFeeds(self, url):
     feeds = []
     flag = validators.url(url)
@@ -1334,7 +1611,7 @@ if __name__ == "__main__":
   
             
   <div class="item">
-    <div class="name def" id="rss2neo.RssFeeder.Feeder.getLinks">
+    <div class="name def" id="rss2neo.RssFeeder.RssFeeder.getLinks">
     <p>def <span class="ident">getLinks</span>(</p><p>self, file)</p>
     </div>
     
@@ -1342,14 +1619,14 @@ if __name__ == "__main__":
     
   
   <div class="source_cont">
-  <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-rss2neo.RssFeeder.Feeder.getLinks', this);">Show source &equiv;</a></p>
-  <div id="source-rss2neo.RssFeeder.Feeder.getLinks" class="source">
+  <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-rss2neo.RssFeeder.RssFeeder.getLinks', this);">Show source &equiv;</a></p>
+  <div id="source-rss2neo.RssFeeder.RssFeeder.getLinks" class="source">
     <pre><code>def getLinks(self, file):
     input_file = open(file)
     try:
         for i, line in enumerate(input_file):
             self.links.append(line)
-            #print line,
+            # print line,
     finally:
         input_file.close()
 </code></pre>
@@ -1360,7 +1637,7 @@ if __name__ == "__main__":
   
             
   <div class="item">
-    <div class="name def" id="rss2neo.RssFeeder.Feeder.load_feeds">
+    <div class="name def" id="rss2neo.RssFeeder.RssFeeder.load_feeds">
     <p>def <span class="ident">load_feeds</span>(</p><p>self)</p>
     </div>
     
@@ -1368,8 +1645,8 @@ if __name__ == "__main__":
     
   
   <div class="source_cont">
-  <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-rss2neo.RssFeeder.Feeder.load_feeds', this);">Show source &equiv;</a></p>
-  <div id="source-rss2neo.RssFeeder.Feeder.load_feeds" class="source">
+  <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-rss2neo.RssFeeder.RssFeeder.load_feeds', this);">Show source &equiv;</a></p>
+  <div id="source-rss2neo.RssFeeder.RssFeeder.load_feeds" class="source">
     <pre><code>def load_feeds(self):
     return self.feeds
 </code></pre>

@@ -998,6 +998,7 @@ table {
   <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-rss2neo', this);">Show source &equiv;</a></p>
   <div id="source-rss2neo" class="source">
     <pre><code>import glob
+import pip
 import sys
 from os import getcwd
 from os.path import dirname, basename, isfile
@@ -1012,6 +1013,16 @@ import Recorder
 
 modules = glob.glob(dirname(__file__)+"/*.py")
 __all__ = [ basename(f)[:-3] for f in modules if isfile(f)]
+
+libnames = ['unicodedata', 'validators', 'nltk', 'json', 'timeit', 'inflect', 'Pattern']
+for libname in libnames:
+    try:
+        lib = __import__(libname)
+    except:
+        print sys.exc_info()
+        pip.main(['install', libname])
+    else:
+        globals()[libname] = lib
 </code></pre>
   </div>
 
@@ -1035,6 +1046,10 @@ and Grapher utilizes each of them to complete the task at hand.</p></div>
       <p class="name"><a href="Parser.m.html">rss2neo.Parser</a></p>
       
   
+    <div class="desc"><p>This file stores the static methods to interpret topic candidates from zero or more bodies of text.
+The work that accomplishes this is in the methods parse_topics and parse_topics_not_nouns.
+get_unstructured_topic returns the list of un-structured topics from the given body of text.
+This uses the ne...</p></div>
 
       </div>
       <div class="item">
