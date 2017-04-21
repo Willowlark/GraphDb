@@ -35,7 +35,7 @@ class Recorder:
 
         `graph_address`: web address of neo4j instance.
         """
-        self.graph = Graph(self, graph_address)
+        self.graph = Graph(graph_address)
 
     def _subgraphify(self, graph_list):
         """
@@ -126,9 +126,16 @@ class Recorder:
 
         `return`: the node created.
         """
-        if self.has_record(data): return False
-        n = Node("Record", content=data)
-        if self.immediate_mode: self.graph.create(n)
+        result = self.has_record(data)
+        if result == 1:
+            return False
+        elif result == 2:
+            n = self.graph.find_one("Record", property_key="content", property_value=data[0])
+        else:
+            n = Node("Record")
+            n['content'] = data[0]
+        n['timestamp'] = data[1]
+        if self.immediate_mode: self.push(n)
         return n
 
     def has_record(self, data):
@@ -142,9 +149,12 @@ class Recorder:
         
         `return`: Boolean True or False
         """
-        if self.graph.find_one("Record", property_key="content", property_value=data):
-            return True
-        else: return False
+        match = self.graph.find_one("Record", property_key="content", property_value=data[0])
+        if match and match['timestamp'] != data[1]:
+            return 2
+        elif match:
+            return 1
+        else: return 0
 
     def relate_then_push(self, topic_subgraph, record_node):
         """
@@ -212,11 +222,10 @@ class Recorder:
         `subgraph`: subgraph of nodes to have their data scrubbed.  
         """
         for node in subgraph.nodes():
-            title = node['title']
-            timestamp = node['timestamp']
-            node.clear()
-            node['title'] = title
-            node['timestamp'] = timestamp
+            if node.has_label("Topic"):
+                title = node['title']
+                node.clear()
+                node['title'] = title
 
 
 if __name__ == "__main__":

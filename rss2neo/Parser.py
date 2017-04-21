@@ -23,7 +23,7 @@ for libname in libnames:
     try:
         lib = __import__(libname)
     except:
-        print sys.exc_info()
+        #print sys.exc_info()
         pip.main(['install', libname])
     else:
         globals()[libname] = lib
@@ -31,7 +31,7 @@ for libname in libnames:
 """
 This switch controls printing on debug
 """
-DEBUG = True
+DEBUG = False
 
 """
 Set the 'infl' var to use a pre-built switch for singularization
@@ -159,12 +159,12 @@ def _reconstruct(listing):
 
     `listing` the list of ORDERED topic candidate instances being iterated
     """
-    for topic in sorted(listing, key = lambda k: k.depth): # sort by depth into the doc
-        print repr(topic)
-        for var in topic.keywordify():
-            print '\t', var, ":", getattr(topic, var)
-        print '\t', topic.before, repr(topic), topic.after
-
+    # for topic in sorted(listing, key = lambda k: k.depth): # sort by depth into the doc
+    #     print repr(topic)
+    #     for var in topic.keywordify():
+    #         print '\t', var, ":", getattr(topic, var)
+    #     print '\t', topic.before, repr(topic), topic.after
+    pass
     # ret = ''
     # first_topic = listing[0]
     # topic = first_topic
@@ -436,7 +436,7 @@ def non_noun_main(make_set=True):
     ret = []
     for key in extracted.keys():
             ret.extend(_parse_topics_not_nouns(extracted[key]))
-    print ret
+    #print ret
     s = set(ret) if make_set else ret
     return s, extracted['link']
 
@@ -446,7 +446,7 @@ try:
     # nltk.data.find(os.path.join('tokenizers', 'punkt.zip'))
     pass
 except LookupError as e:
-    print "\tPlease choose the location of the nltk_data resource (see file dialogue)"
+    #print "\tPlease choose the location of the nltk_data resource (see file dialogue)"
     from  Tkinter import Tk
     import Tkinter, Tkconstants, tkFileDialog
     root = Tk()

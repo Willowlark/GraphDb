@@ -4,11 +4,11 @@ and Grapher utilizes each of them to complete the task at hand."""
 
 import sys
 from time import sleep
+import logging
 
 import Parser
 from Recorder import Recorder
-from rss2neo import RssFeeder
-
+import Feeder
 
 
 def post_60(graphAddress, path):
@@ -35,11 +35,11 @@ def post_60(graphAddress, path):
 
     recorder = Recorder()
     recorder.initialize(graphAddress)
-    feeder = RssFeeder.RssFeeder(path)
+    feeder = Feeder.RssFeeder(path)
     while True:
 
         feeder.fetch()
-        for feed in feeder.feeds():
+        for feed in feeder.contents():
             extracted = feed.extract()
             record_value = feed.record_content()
 

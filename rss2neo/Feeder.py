@@ -36,7 +36,7 @@ class Feed:
         return {k: self.feed[k] for k in ('id', 'published', 'title', 'link', 'summary')}
 
     def record_content(self):
-        return self.feed['link']
+        return self.feed['link'], self.feed['published'];
 
 
 class Feeder:
@@ -65,7 +65,7 @@ class Feeder:
         self.feeds = []
         self.path = file
 
-    def feeds(self):
+    def contents(self):
         """
         Returns the feeds the Feeder is holding on to via a generator structure.  
         """
@@ -192,7 +192,7 @@ class DocFeeder(Feeder):
         
         `file`: path to original directory
         """
-        print "getting Paths"
+        #print "getting Paths"
         matches = []
         for filename in self.__find_files(file, "*.*"):
             matches.append(filename)
@@ -210,7 +210,7 @@ class DocFeeder(Feeder):
         
         `return`: file paths matching pattern
         """
-        print "finding files"
+        #print "finding files"
         for root, dirs, files in os.walk(directory):
             for basename in files:
                 if fnmatch.fnmatch(basename, pattern):
@@ -223,7 +223,7 @@ class DocFeeder(Feeder):
         
         This method appends all of the feed instances to 'feeds'
         """
-        print "fetching ..."
+        #print "fetching ..."
         for i in range(len(self.paths)):
             self.feeds.append(self.__getFeeds(self.paths[i]))
 
@@ -233,7 +233,7 @@ class DocFeeder(Feeder):
         
         `return`: 'feeds' which contains all of the feed instances 
         """
-        print "Loading feeds"
+        #print "Loading feeds"
         self.fetch()
         return self.feeds
 

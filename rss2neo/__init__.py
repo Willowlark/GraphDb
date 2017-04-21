@@ -7,7 +7,7 @@ from os.path import dirname, basename, isfile
 sys.path.append(getcwd())
 
 import Grapher
-from rss2neo import RssFeeder
+from rss2neo import Feeder
 import Parser
 import Recorder
 
