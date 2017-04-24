@@ -19,7 +19,7 @@ import json
 import pattern
 from functools import wraps
 from collections import defaultdict
-from markup_parser import markup_parser
+from _markup_parser import markup_parser
 
 """
 Set the 'infl' var to use a pre-built switch for singularization
