@@ -1,0 +1,12 @@
+//Depth Scan
+MATCH (a {title:""}) WITH a MATCH (a)-[*..DEPTH]-(b) RETURN a, b;
+
+//Set the title to what Topic you'd like to research and the depth to the number of relationships
+//to travel down.
+
+//filter by weight & Depth
+MATCH path=(a:Topic {title:""})-[c*..DEPTH]-(b)
+WHERE all(rel IN relationships(path) WHERE rel.weight > WEIGHT)
+RETURN path
+
+//Adds a weight clause to only get strong relationships.
