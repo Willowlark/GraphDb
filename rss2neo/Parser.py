@@ -12,33 +12,20 @@ from __future__ import division
 
 import os
 import sys
-import pip
+import inflect
+import unicodedata
+import nltk
+import json
+import pattern
 from functools import wraps
 from collections import defaultdict
 from markup_parser import markup_parser
-
-"""Import statements will fail when not pipped in, so pip them to be up to date"""
-libnames = ['unicodedata', 'validators', 'nltk', 'json', 'timeit', 'inflect', 'Pattern']
-for libname in libnames:
-    try:
-        lib = __import__(libname)
-    except:
-        #print sys.exc_info()
-        pip.main(['install', libname])
-    else:
-        globals()[libname] = lib
-
-"""
-This switch controls printing on debug
-"""
-DEBUG = False
 
 """
 Set the 'infl' var to use a pre-built switch for singularization
 Used to tell if a given noun is singular or not, then pattern.re is used to singularize it
 """
 infl = inflect.engine()
-# infl = None
 
 class Topic_Candidate(object):
     """
@@ -149,31 +136,6 @@ def get_unstructured_topic(extracted, keys=('id', 'title', 'summary'), make_set=
             ret.extend(_parse_topics(extracted[key]))
     return set(ret)
 
-def _reconstruct(listing):
-    """
-    `Author` Bob S.
-
-    Used extensively for demo and debugging
-    reconstruct the context of all topics from return listing alone.
-    Requisite: the listing must be a list of topics already ordered by the order that they appear in the body of text where they were found
-
-    `listing` the list of ORDERED topic candidate instances being iterated
-    """
-    # for topic in sorted(listing, key = lambda k: k.depth): # sort by depth into the doc
-    #     print repr(topic)
-    #     for var in topic.keywordify():
-    #         print '\t', var, ":", getattr(topic, var)
-    #     print '\t', topic.before, repr(topic), topic.after
-    pass
-    # ret = ''
-    # first_topic = listing[0]
-    # topic = first_topic
-    # ret += blue(' '.join(topic.before))
-    # while topic is not None:
-    #     ret += ' ' + red(str(topic)) + ' ' + blue(' '.join(topic.after))
-    #     topic = topic.suffix
-    # ret += '\n'
-    # print ret
 
 def _structured_topic(body_of_text, try_markup=False):
     """
@@ -306,9 +268,6 @@ def _get_NP_topics(tagged):
             if title == topic.title:
                 topic.strength = count
 
-    if DEBUG:
-        _reconstruct(listing)
-
     return listing
 
 def _get_non_NP_topics(tagged):
@@ -362,111 +321,14 @@ def _get_non_NP_topics(tagged):
                 ret.append(Topic_Candidate(title=title, strength=strength, label=label))
     return ret
 
-def _timer(function):
-    """ easy wrapper class for determining runtime of wrapped method"""
-
-    @wraps(function)
-    def func_timer(*args, **kwargs):
-        t0 = timeit.default_timer()
-        result = function(*args, **kwargs)
-        t1 = timeit.default_timer()
-        diff = t1 - t0
-        phrase = " Total time running '%s': %s seconds " %(function.func_name, str(diff))
-        print '\n{:*^150}\n'.format(phrase)
-        return result, diff
-    return func_timer
-
-def _process_input(input):
-    """
-    used by main and debugger for testing purposes
-    """
-
-    def process_string(string):
-        text = string.strip()
-        return text
-
-    def process_url(url):
-        import urllib
-        from bs4 import BeautifulSoup
-        html = urllib.urlopen(url).read()
-        text = BeautifulSoup(html, "lxml")
-        text = text.find("div", {"class" : "article-text"})
-        text = text.get_text()
-
-        return unicodedata.normalize('NFKD', text).encode('ascii', 'ignore')
-
-    def process_file(file):
-        text = get_text(file)
-        text = text.strip()
-        return text
-
-    def get_text(file):
-        import re
-        """Read text from a file, normalizing whitespace and stripping HTML markup."""
-        text = open(file).read()
-        text = re.sub(r'<.*?>', ' ', text)
-        text = re.sub('\s+', ' ', text)
-        return text
-
-    if validators.url(input):
-        return process_url(input)
-    elif os.path.exists(input):
-        return process_file(input)
-    else:
-        return process_string(input)
-
-@_timer
-def main():
-    """----demo usage in context----"""
-
-    link = 'http://www.foxnews.com/us/2017/02/10/marine-vet-speaks-out-about-viral-video-supporting-trump-travel-ban.html'
-    body =_process_input(link)
-    """----Use in practical development of NP parser (parser of choice)----"""
-    extracted = {'summary': body, 'link': link}
-    return get_unstructured_topic(extracted, keys=['summary'])
-    # return _parse_topics_not_nouns(body)
-
-@_timer
-def non_noun_main(make_set=True):
-    """----demo usage in context----"""
-
-    link = 'http://www.foxnews.com/us/2017/02/10/marine-vet-speaks-out-about-viral-video-supporting-trump-travel-ban.html'
-    body =_process_input(link)
-    extracted = {'summary': body, 'link': link}
-    ret = []
-    for key in extracted.keys():
-            ret.extend(_parse_topics_not_nouns(extracted[key]))
-    #print ret
-    s = set(ret) if make_set else ret
-    return s, extracted['link']
-
-
 """Code to assign working path of nltk_data resource to local copy, if one exists else tell user to download"""
 try:
     # nltk.data.find(os.path.join('tokenizers', 'punkt.zip'))
     pass
 except LookupError as e:
-    #print "\tPlease choose the location of the nltk_data resource (see file dialogue)"
+    print "\tPlease choose the location of the nltk_data resource (see file dialogue)"
     from  Tkinter import Tk
     import Tkinter, Tkconstants, tkFileDialog
     root = Tk()
     directory = tkFileDialog.askdirectory()
     nltk.data.path.append(directory)
-
-if DEBUG:
-    print "Using path(s) to nltk resources:", nltk.data.path
-
-
-if __name__ == '__main__':
-
-    """ Alt main to test non-noun word extraction"""
-    # results = non_noun_main()[0]
-    results = main()[0]
-    if DEBUG:
-        print 'results:', str(results[0])
-        print 'link:', results[1]
-
-        for res in results[0]:
-            print res.keywordify()
-
-    sys.exit(0)

@@ -4,7 +4,6 @@ and Grapher utilizes each of them to complete the task at hand."""
 
 import sys
 from time import sleep
-import logging
 
 import Parser
 from Recorder import Recorder
